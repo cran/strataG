@@ -9,8 +9,10 @@
 #' @param description optional description for resulting object. If \code{NULL} then descriptions of both objects are combined.
 #' @param ...  other parameters (ignored).
 #'  
-#' @details \code{x} and \code{y} must have the same ploidy. If haploid, they cannot share samples. If diploid, and shared samples 
-#'   cannot also share loci in the two objects.
+#' @details \code{x} and \code{y} must have the same ploidy. If haploid, they cannot share samples. If diploid, and they share samples 
+#'   the shared samples cannot also share loci in the two objects.
+#' 
+#' @return a \code{\link{gtypes}} object with the samples and loci from \code{x} and \code{y} merged.
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 

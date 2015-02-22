@@ -17,7 +17,23 @@
 #' @param write.output logical. Write a .csv file with results?
 #' @param ... other parameters to be passed to population differentiation functions.
 #' 
-#' @return list with results
+#' @return
+#' \describe{
+#'  \item{overall.test}{a list containing:
+#'    \tabular{ll}{
+#'      \code{strata.freq} \tab a vector of the sample sizes for each stratum.\cr
+#'      \code{result} \tab a matrix with the statistic estimate and p-value for each statistic.\cr
+#'      \code{null.dist} \tab a matrix with the null distributions for each statistic.\cr
+#'    }}
+#'  \item{pairwise.test}{a list containing:
+#'    \tabular{ll}{
+#'      \code{result} \tab a data.frame with the result of each pairwise comparison on a line.\cr
+#'      \code{pair.mat} \tab a list with a pairwise matrix for each statistic. Values in lower left are p-values, upper right is statistic estimate.\cr
+#'      \code{null.dist} \tab a matrix with the null distributions for each statistic.\cr
+#'    }}
+#'  \item{overall.test}{a list with an element for \code{overall} and \code{pairwise} as described above.}
+#' }
+#' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
 #' @examples

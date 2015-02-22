@@ -11,6 +11,7 @@
 #' @param AIC,AICc,BIC,DT logical. Calculate respective information criterion metrics?
 #' @param param.imp logical. Calculate parameter importances?
 #' @param model.average logical. Do model averaging and parameter importances?
+#' @param numThreads Number of threads to use.
 #' @param path path where \code{jModelTest.jar} is located.
 #' @param java.opts options to \code{java} command line.
 #' 
@@ -26,7 +27,7 @@
 
 jmodeltest.run <- function(x, sub.schemes = 3, unequal.base.freq = FALSE,
   prop.inv.sites = FALSE, rate.var = NULL, AIC = FALSE, AICc = FALSE,
-  BIC = FALSE, DT = FALSE, param.imp = FALSE, model.average = FALSE,
+  BIC = FALSE, DT = FALSE, param.imp = FALSE, model.average = FALSE, numThreads = 1,
   path = ifelse(.Platform$OS.type == "windows", "C:/Program Files/jModelTest", "/usr/local/bin/jmodeltest"),
   java.opts = NULL) {
   
@@ -40,24 +41,26 @@ jmodeltest.run <- function(x, sub.schemes = 3, unequal.base.freq = FALSE,
   output.file <- gsub(".fasta", ".results.txt", in.file)
   
   modeltest.call <- paste("java", java.opts, "-jar jModelTest.jar",
-    "-d", in.file,
-    "-s", sub.schemes,
-    ifelse(unequal.base.freq, "-f", ""),
-    ifelse(prop.inv.sites, "-i", ""),
-    ifelse(!is.null(rate.var), paste("-g", rate.var), ""),
-    ifelse(AIC, "-AIC", ""),
-    ifelse(AICc, "-AICc", ""),
-    ifelse(BIC, "-BIC", ""),
-    ifelse(DT, "-DT", ""),
-    ifelse(param.imp, "-p", ""),
-    ifelse(model.average, "-v", ""),
-    ">", output.file
+                          "-d", in.file,
+                          "-s", sub.schemes,
+                          ifelse(unequal.base.freq, "-f", ""),
+                          ifelse(prop.inv.sites, "-i", ""),
+                          ifelse(!is.null(rate.var), paste("-g", rate.var), ""),
+                          ifelse(AIC, "-AIC", ""),
+                          ifelse(AICc, "-AICc", ""),
+                          ifelse(BIC, "-BIC", ""),
+                          ifelse(DT, "-DT", ""),
+                          ifelse(param.imp, "-p", ""),
+                          ifelse(model.average, "-v", ""),
+                          "-tr", numThreads,
+                          ">", output.file
   )
-  system(modeltest.call, intern = F)
-  
-  file.remove(in.file)
-  file.rename(file.path(path, output.file), file.path(wd, output.file))
+  err.code <- system(modeltest.call, intern = F)
   setwd(wd)
   
-  output.file
+  if(err.code == 0) {
+    file.remove(file.path(path, in.file))
+    file.rename(file.path(path, output.file), file.path(wd, output.file))
+    invisible(output.file)
+  } else invisible(NULL)
 }

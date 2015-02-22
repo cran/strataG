@@ -5,17 +5,21 @@
 #' @description Creates a coded list of stratified genotypes or haplotypes for use with 
 #'   most functions in the \code{strataG} package. 
 #' 
-#' @param gen.data a \code{matrix}, \code{data.frame}, \code{list} of sequences, or filename where genetic data is stored
-#' @param id.col a number or character string specifying the column where sample IDs are located
+#' @param gen.data a \code{matrix}, \code{data.frame}, \code{list} of sequences, or filename where genetic data is stored.
+#'   The columns designating ids and strata should come before the locus columns. The columns containing genetic data,
+#'   (designated by \code{locus.col}) must be at the end.
+#'   If they are diploid loci, then every two columns are considered to be two alleles of a locus. It is advised to use
+#'   \code{\link{read.gen.data}} to import a .csv file for use.
+#' @param id.col a number or character string specifying the column where sample IDs are located.
 #' @param strata.col a number of character string specifying the column where strata designations are located
 #' @param locus.col a number specifying the first column of the genetic loci. All other loci are assumed to follow this column.
-#' @param dna.seq a list of DNA sequences for haploid data
+#' @param dna.seq a list of DNA sequences for haploid data.
 #' @param description a string naming or describing this dataset. Will be used in summaries and plots. 
 #' @param g a gtypes object.
 #' @param delete.missing.strata logical. Delete samples for which strata is missing (NA)?
 #' @param code.start integer to start numeric recoding at. Must be >= 0.
 #' @param strata.vec a character or numeric vector specifying the stratum that each sample should be assigned to.
-#' @param ploidy character giving ploidy of gtypes object ("haploid", "diploid", or "any").
+#' @param ploidy character giving ploidy of gtypes object being tested by \code{is.gtypes}. Can be "haploid", "diploid", or "any".
 #' @param x an R object to test.
 #' @param show.warnings logical - show warnings for is.dna.seq describing check failures?
 #' @param ... arguments to the default method 
@@ -28,16 +32,16 @@
 #'   \code{sequences} \tab If haploid, and provided on creation, a list of aligned DNA sequences. Otherwise \code{NULL}.\cr
 #' }
 #' 
-#' @note a gtypes object has the input strata and locus data coded numerically for ease of use in 
-#'   analytical functions. Mapping attributes \code{strata.name} and \code{locus.name} are available 
-#'   in each element. To map to the original data, one can use \code{\link{decode}}, \code{\link{as.matrix.gtypes}},
+#' @note A gtypes object has the strata and locus data coded numerically for ease of use in 
+#'   analytical functions. Mapping attributes \code{strata.name} and \code{locus.name} are attached to the
+#'   object. To map to the original data, one can use \code{\link{decode}}, \code{\link{as.matrix.gtypes}},
 #'   or \code{\link{as.data.frame.gtypes}}, however, the resulting object from these cannot be used 
 #'   where a \code{gtypes} object is required.
 #' 
 #' @author Eric Archer <eric.archer@@noaa.gov>
 #' 
 #' @seealso \code{\link{decode}}, \code{\link{as.matrix.gtypes}}, \code{\link{as.data.frame.gtypes}}
-#' 
+#'
 #' @examples
 #' data(dolph.strata)
 #' data(dolph.haps)

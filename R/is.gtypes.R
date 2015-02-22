@@ -22,7 +22,7 @@ is.gtypes <- function(x, show.warnings = TRUE) {
         if(has.locus.names) {
           locus.name.check <- length(locus.names) == num.loci(x$genotypes[, -1, drop = FALSE])
           haplotype.name.check <- if(!is.null(x$sequences)) {
-            all(na.omit(unique(as.character(x$genotypes[, 1]))) %in% names(x$sequences))
+            all(na.omit(unique(as.character(x$genotypes[, 2]))) %in% names(x$sequences))
           } else TRUE
           if(locus.name.check & haplotype.name.check) {
             return(TRUE)

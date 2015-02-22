@@ -14,7 +14,9 @@ gtypes.default <- function(gen.data, id.col = 1, strata.col = 2, locus.col = 3, 
     
   # Extract genetic data based on specified columns
   gen.data <- cbind(gen.data[, id.col, drop = FALSE], gen.data[, strata.col, drop = FALSE], gen.data[, locus.col:ncol(gen.data), drop = FALSE])
-  gen.data <- as.matrix(apply(gen.data, 2, as.character))
+  gen.data.cols <- colnames(gen.data)
+  gen.data <- do.call(cbind, lapply(1:ncol(gen.data), function(i) as.character(gen.data[, i])))
+  colnames(gen.data) <- gen.data.cols
   gen.data <- gen.data[!is.na(gen.data[, 1]), , drop = FALSE]
   if(delete.missing.strata) gen.data <- gen.data[!is.na(gen.data[, 2]), , drop = FALSE]
   
@@ -121,5 +123,4 @@ gtypes.default <- function(gen.data, id.col = 1, strata.col = 2, locus.col = 3, 
     
   # Remove samples with missing data for all loci
   na.omit(g, strata = delete.missing.strata, loci = TRUE)
-  g
 }

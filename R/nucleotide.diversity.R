@@ -5,14 +5,14 @@
 #' @description Calculate nucleotide diversity for set of haplotypes.
 #' 
 #' @param x a list of sequences or a \code{\link{gtypes}} object.
-#' @param ignore.gaps logical. Ignore gaps when calculating diversity? 
+#' @param bases nucleotides to consider when calculating diversity.
 #' 
 #' @return Nucleotide diversity by site. 
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 
-nucleotide.diversity <- function(x, ignore.gaps = TRUE) {
-  seq.mat <- if(is.gtypes(x)) {
+nucleotide.diversity <- function(x, bases = c("a", "c", "g", "t")) {
+  seq.mat <- if(is.gtypes(x, show.warnings = FALSE)) {
     stopifnot.gtypes(x, "haploid")
     stopifnot.aligned(x$sequences)
     hap.freq <- table(factor(x$genotypes[, 2], levels = names(x$sequences)))
@@ -23,9 +23,10 @@ nucleotide.diversity <- function(x, ignore.gaps = TRUE) {
     tolower(do.call(rbind, x))
   }
   
-  result <- apply(seq.mat, 2, function(bases) {
-    if(ignore.gaps) bases <- bases[bases != "-"]
-    diversity(bases)
+  bases <- tolower(bases)
+  result <- apply(seq.mat, 2, function(b) {
+    b <- b[b %in% bases]
+    diversity(b)
   })
   names(result) <- 1:length(result)
   result
