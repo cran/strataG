@@ -1,7 +1,7 @@
 Package: strataG
 Title: Summaries and Population Structure Analyses of Genetic Data
 Description: A toolkit for analyzing stratified population genetic data.
-Version: 1.0
+Version: 1.0.3
 License: GNU General Public License
 Authors@R: c(
   EA = person("Eric", "Archer", email = "eric.archer@noaa.gov", role = c("aut", "cre")),
@@ -40,10 +40,10 @@ VignetteBuilder: knitr
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
-Packaged: 2016-04-03 04:11:44 UTC; eric.archer
+Packaged: 2016-04-04 17:43:31 UTC; eric.archer
 Author: Eric Archer [aut, cre],
   Paula Adams [aut],
   Brita Schneiders [aut]
 Maintainer: Eric Archer <eric.archer@noaa.gov>
 Repository: CRAN
-Date/Publication: 2016-04-03 17:29:43
+Date/Publication: 2016-04-04 23:56:51

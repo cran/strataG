@@ -11,7 +11,7 @@
 
 <meta name="author" content="Eric Archer" />
 
-<meta name="date" content="2016-04-02" />
+<meta name="date" content="2016-04-04" />
 
 <title>Tests of Population Structure</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title">Tests of Population Structure</h1>
 <h4 class="author"><em>Eric Archer</em></h4>
-<h4 class="date"><em>2016-04-02</em></h4>
+<h4 class="date"><em>2016-04-04</em></h4>
 
 </div>
 
@@ -100,13 +100,13 @@ msats &lt;-<span class="st"> </span>msats[, <span class="kw">locNames</span>(msa
 ##    0.056    0.091 
 ## 
 ## $null.dist
-##  [1] -0.00453 -0.00169 -0.00233 -0.00771 -0.00357 -0.00579  0.00216
-##  [8] -0.01066 -0.00039 -0.00603</code></pre>
+##  [1] -0.00571 -0.00723 -0.00937 -0.00834 -0.00246 -0.00828 -0.00718
+##  [8] -0.00910 -0.00620  0.00055</code></pre>
 <p>Population structure tests can be conducted in an “overall” manner which estimates the degree of differentiation due to the specified stratification scheme, or in a “pairwise” manner, which tests differentiation between all pairs of strata. The overall test is run via <em>overallTest</em>. By default, all statistics are run and NAs are returned if they are not appropriate to the type of data (e.g., PHIst for diploid data). Tests for specified statistics can be conducted by listing them in the <code>stats</code> argument:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ovl &lt;-<span class="st"> </span><span class="kw">overallTest</span>(msats, <span class="dt">stats =</span> <span class="kw">c</span>(<span class="st">&quot;Fst&quot;</span>, <span class="st">&quot;Chi2&quot;</span>), <span class="dt">nrep =</span> <span class="dv">1000</span>)</code></pre></div>
 <pre><code>## 
 ## &lt;&lt;&lt; dolphin msats &gt;&gt;&gt;
-##  2016-04-02 21:11:03 : Overall test : 1000 permutations
+##  2016-04-04 10:42:49 : Overall test : 1000 permutations
 ## 
 ##                 N
 ## Coastal        68
@@ -121,20 +121,20 @@ msats &lt;-<span class="st"> </span>msats[, <span class="kw">locNames</span>(msa
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pws &lt;-<span class="st"> </span><span class="kw">pairwiseTest</span>(msats, <span class="dt">stats =</span> <span class="kw">c</span>(statFstPrime, statGst), <span class="dt">nrep =</span> <span class="dv">1000</span>)</code></pre></div>
 <pre><code>## 
 ## &lt;&lt;&lt; dolphin msats &gt;&gt;&gt;
-##  2016-04-02 21:11:03 : Pairwise tests : 1000 permutations
-##    2016-04-02 21:11:03 : Coastal v. Offshore.North 
-##    2016-04-02 21:11:04 : Coastal v. Offshore.South 
-##    2016-04-02 21:11:04 : Offshore.North v. Offshore.South 
+##  2016-04-04 10:42:49 : Pairwise tests : 1000 permutations
+##    2016-04-04 10:42:49 : Coastal v. Offshore.North 
+##    2016-04-04 10:42:49 : Coastal v. Offshore.South 
+##    2016-04-04 10:42:50 : Offshore.North v. Offshore.South 
 ## 
 ## Population structure results:
 ##                                   pair.label    F'st F'st.p.val    Gst
 ## 1        Coastal (68) v. Offshore.North (40)  0.5117      0.001  0.063
 ## 2        Coastal (68) v. Offshore.South (18)  0.5902      0.001  0.069
-## 3 Offshore.North (40) v. Offshore.South (18) -0.0099      0.539 -0.011
+## 3 Offshore.North (40) v. Offshore.South (18) -0.0099      0.526 -0.011
 ##   Gst.p.val
 ## 1     0.001
 ## 2     0.001
-## 3     0.490</code></pre>
+## 3     0.493</code></pre>
 <p>The result of a pairwise test contains both a data.frame formatted for each pairwise comparison and pairwise matrices for each statistic with statistic estimates in the lower left, and p-values in the upper right.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pws</code></pre></div>
 <pre><code>## $result
@@ -145,19 +145,19 @@ msats &lt;-<span class="st"> </span>msats[, <span class="kw">locNames</span>(msa
 ##   n.1 n.2    F'st F'st.p.val    Gst Gst.p.val
 ## 1  68  40  0.5117      0.001  0.063     0.001
 ## 2  68  18  0.5902      0.001  0.069     0.001
-## 3  40  18 -0.0099      0.539 -0.011     0.490
+## 3  40  18 -0.0099      0.526 -0.011     0.493
 ## 
 ## $pair.mat
 ## $pair.mat$`F'st`
 ##                Coastal Offshore.North Offshore.South
 ## Coastal             NA         0.0010          0.001
-## Offshore.North    0.51             NA          0.539
+## Offshore.North    0.51             NA          0.526
 ## Offshore.South    0.59        -0.0099             NA
 ## 
 ## $pair.mat$Gst
 ##                Coastal Offshore.North Offshore.South
 ## Coastal             NA          0.001          0.001
-## Offshore.North   0.063             NA          0.490
+## Offshore.North   0.063             NA          0.493
 ## Offshore.South   0.069         -0.011             NA
 ## 
 ## 
@@ -190,19 +190,19 @@ popStruct</code></pre></div>
 ##   n.1 n.2     Fst Fst.p.val    F'st F'st.p.val
 ## 1  68  40  0.1308     0.001  0.5117      0.001
 ## 2  68  18  0.1552     0.001  0.5902      0.001
-## 3  40  18 -0.0012     0.537 -0.0099      0.537
+## 3  40  18 -0.0012     0.555 -0.0099      0.554
 ## 
 ## $pairwise$pair.mat
 ## $pairwise$pair.mat$Fst
 ##                Coastal Offshore.North Offshore.South
 ## Coastal             NA         0.0010          0.001
-## Offshore.North    0.13             NA          0.537
+## Offshore.North    0.13             NA          0.555
 ## Offshore.South    0.16        -0.0012             NA
 ## 
 ## $pairwise$pair.mat$`F'st`
 ##                Coastal Offshore.North Offshore.South
 ## Coastal             NA         0.0010          0.001
-## Offshore.North    0.51             NA          0.537
+## Offshore.North    0.51             NA          0.554
 ## Offshore.South    0.59        -0.0099             NA
 ## 
 ## 
