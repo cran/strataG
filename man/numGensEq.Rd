@@ -17,7 +17,18 @@ numGensEq(fst, Ne, gen.time)
 Calculate the number of generations to equilibrium based on a an
   ideal Wright model.
 }
+\examples{
+numGensEq(0.15, 100, 20)
+
+numGensEq(0.3, 100, 20)
+
+numGensEq(0.15, 50, 20)
+
+}
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
+}
+\seealso{
+\link{wrightFst}, \link{fstToNm}, \link{expectedNumAlleles}
 }
 

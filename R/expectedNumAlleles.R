@@ -14,22 +14,23 @@
 #'
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #'
-#' @examples
+#' @seealso \link{wrightFst}, \link{numGensEq}, \link{fstToNm}
 #'
-#' exptdNumAlleles(20, 1, 2)
+#' @examples
+#' expectedNumAlleles(20, 1, 2)
 #'
 #' # double the samples
-#' exptdNumAlleles(40, 1, 2)
+#' expectedNumAlleles(40, 1, 2)
 #'
 #' # for a haploid locus
-#' exptdNumAlleles(40, 1, 1)
+#' expectedNumAlleles(40, 1, 1)
 #'
 #' # double theta
-#' exptdNumAlleles(40, 2, 1)
+#' expectedNumAlleles(40, 2, 1)
 #'
 #' @export
 #' 
-exptdNumAlleles <- function(n, theta, ploidy) {
+expectedNumAlleles <- function(n, theta, ploidy) {
   n <- trunc(n)
   ploidy <- trunc(ploidy)
   result <- c(num.alleles = NA, var.num.alleles = NA)

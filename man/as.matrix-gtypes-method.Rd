@@ -2,11 +2,13 @@
 % Please edit documentation in R/as.matrix.gtypes.R
 \docType{methods}
 \name{as.matrix,gtypes-method}
+\alias{as.matrix}
 \alias{as.matrix,gtypes-method}
 \alias{as.matrix.gtypes}
 \title{Convert \code{gtypes} To \code{matrix}}
 \usage{
-\S4method{as.matrix}{gtypes}(x, one.col = FALSE, sep = "/", ...)
+\S4method{as.matrix}{gtypes}(x, one.col = FALSE, sep = "/", ids = TRUE,
+  strata = TRUE, ...)
 }
 \arguments{
 \item{x}{a \linkS4class{gtypes} object.}
@@ -17,19 +19,38 @@ locus.}
 \item{sep}{character to use to separate alleles if \code{one.col} is 
 \code{TRUE}.}
 
+\item{ids}{logical. include a column for individual identifiers (\code{ids})?}
+
+\item{strata}{logical. include a column for current statification (\code{strata})?}
+
 \item{...}{additional arguments ot be passed to or from methods.}
 }
 \value{
-A \code{matrix} or \code{data.frame} with one row per sample.
+A \code{matrix} with one row per sample.
 }
 \description{
-Convert genotypic data in the \code{@loci} slot of a 
-  \linkS4class{gtypes} object to a \code{matrix}.
+Create a matrix from a \linkS4class{gtypes} object.
+}
+\examples{
+data(msats.g)
+
+# with defaults (alleles in multiple columns, with ids and stratification)
+mat <- as.matrix(msats.g)
+head(mat)
+
+# one column per locus
+onecol.mat <- as.matrix(msats.g, one.col = TRUE)
+head(onecol.mat)
+
+# just the genotypes
+genotypes.mat <- as.matrix(msats.g, one.col = TRUE, ids = FALSE, strata = FALSE)
+head(genotypes.mat)
+
 }
 \author{
 Eric Archer \email{eric.archer@noa.gov}
 }
 \seealso{
-\link{df2gtypes}
+\link{df2gtypes} \link[strataG]{as.data.frame}
 }
 

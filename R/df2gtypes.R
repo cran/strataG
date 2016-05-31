@@ -34,8 +34,8 @@
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
-#' @seealso \link{initialize.gtypes}, \link{sequence2gtypes}, \link{gtypes2df},
-#'   \link{gtypes2genind}, \link{gtypes2loci}
+#' @seealso \link{initialize.gtypes}, \link{sequence2gtypes}, 
+#'   \link{as.data.frame.gtypes}, \link{gtypes2genind}, \link{gtypes2loci}
 #' 
 #' @examples
 #' #--- create a diploid (microsatellite) gtypes object
@@ -63,8 +63,14 @@ df2gtypes <- function(x, ploidy, id.col = 1, strata.col = 2, loc.col = 3,
   }
   
   # check that id.col, strata.col, and loc.col are numbers and loc.col is max
-  if(!is.null(id.col)) id.col <- as.numeric(id.col)
-  if(!is.null(strata.col)) strata.col <- as.numeric(strata.col)
+  if(!is.null(id.col)) {
+    if(is.character(id.col)) id.col <- match(id.col, colnames(x))
+    id.col <- as.numeric(id.col)
+  }
+  if(!is.null(strata.col)) {
+    if(is.character(strata.col)) strata.col <- match(strata.col, colnames(x))
+    strata.col <- as.numeric(strata.col)
+  }
   loc.col <- as.numeric(loc.col)
   if(loc.col < max(id.col, strata.col, loc.col)) {
     stop("'loc.col' must be greater than 'id.col' and 'strata.col'")

@@ -8,6 +8,15 @@
 #'
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #'
+#' @seealso \link{wrightFst}, \link{fstToNm}, \link{expectedNumAlleles}
+#'
+#' @examples
+#' numGensEq(0.15, 100, 20)
+#' 
+#' numGensEq(0.3, 100, 20)
+#' 
+#' numGensEq(0.15, 50, 20)
+#'
 #' @export
 #' 
 numGensEq <- function(fst, Ne, gen.time) {

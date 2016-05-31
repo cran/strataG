@@ -28,28 +28,26 @@
 #'   to the \code{i} slot.
 #'
 #' @return
-#' \tabular{ll}{
-#'   \code{nInd} \tab number of individuals.\cr
-#'   \code{nLoc} \tab number of loci.\cr
-#'   \code{nStrata} \tab number of strata.\cr
-#'   \code{indNames} \tab vector of individual/sample names.\cr
-#'   \code{locNames} \tab vector of locus names.\cr
-#'   \code{strataNames} \tab vector of strata names for current scheme.\cr
-#'   \code{ploidy} \tab number of alleles at each locus.\cr
-#'   \code{other} \tab contents of \code{@@other} slot.\cr
-#'   \code{strata} \tab return or modify the current stratification.\cr
-#'   \code{schemes} \tab return or modify the current stratification schemes.\cr
-#'   \code{loci} \tab return a data.frame of the alleles for the specified ids 
-#'     and loci.\cr
-#'   \code{sequences} \tab return the \linkS4class{multidna} object in 
-#'     the \code{@@sequences} slot.\cr See \code{\link[apex]{getSequences}} to 
-#'     extract individual genes or sequences from this object.
-#'   \code{description} \tab return the object's description.\cr
+#' \describe{
+#'   \item{nInd}{number of individuals}
+#'   \item{nLoc}{number of loci}
+#'   \item{nStrata}{number of strata}
+#'   \item{indNames}{vector of individual/sample names}
+#'   \item{locNames}{vector of locus names}
+#'   \item{strataNames}{vector of strata names for current scheme}
+#'   \item{ploidy}{number of alleles at each locus}
+#'   \item{other}{contents of \code{@@other} slot}
+#'   \item{strata}{return or modify the current stratification}
+#'   \item{schemes}{return or modify the current stratification schemes}
+#'   \item{loci}{return a data.frame of the alleles for the specified ids and loci}
+#'   \item{alleleNames}{return a list of alleles at each locus}
+#'   \item{sequences}{return the \linkS4class{multidna} object in 
+#'     the \code{@@sequences} slot. See \code{\link[apex]{getSequences}} to 
+#'     extract individual genes or sequences from this object}
+#'   \item{description}{return the object's description}
 #' }
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
-#' 
-#' @aliases accessors
 #' 
 #' @examples
 #' #--- create a diploid (microsatellite) gtypes object
@@ -93,15 +91,25 @@
 #' gene1.dnabin <- getSequences(sequences(gene1))
 #' class(gene1.dnabin) # "DNAbin"
 #' 
-setClass("gtypes")
-
+#' @aliases accessors
+#' @importFrom adegenet nInd
+#' @importFrom methods setGeneric setMethod
+#' 
 
 #' @rdname gtypes.accessors
-#' @aliases nInd
+#' 
+setGeneric("nInd")
+
+#' @rdname gtypes.accessors
+#' @aliases nInd,gtypes-method nInd
 #' @export
 #' 
 setMethod("nInd", "gtypes", function(x, ...) nrow(x@loci) / x@ploidy)
 
+
+#' @rdname gtypes.accessors
+#' 
+setGeneric("nLoc")
 
 #' @rdname gtypes.accessors
 #' @aliases nLoc
@@ -163,7 +171,6 @@ setMethod("ploidy", "gtypes", function(x, ...) x@ploidy)
 #' @export
 #' 
 setMethod("other", "gtypes", function(x, ...) x@other)
-
 
 #' @rdname gtypes.accessors
 #' @aliases strata
@@ -230,13 +237,29 @@ setGeneric("loci", function(x, ...) standardGeneric("loci"))
 #' @export
 #' 
 setMethod("loci", "gtypes", function(x, ids = NULL, loci = NULL) {
-  if(is.null(ids)) ids <- indNames(x)
+  x.ids <- indNames(x)
+  if(is.null(ids)) ids <- x.ids
   if(is.null(loci)) loci <- locNames(x)
-  if(!all(ids %in% indNames(x))) stop("some 'ids' not found in 'x'")
+  if(!all(ids %in% x.ids)) stop("some 'ids' not found in 'x'")
   if(!all(loci %in% locNames(x))) stop("some 'loci' not found in 'x'")
-  x@loci[idRows(ids, rownames(x@loci)), loci, drop = FALSE]
+  x@loci[idRows(x, ids = ids), loci, drop = FALSE]
 })
 
+
+#' @rdname gtypes.accessors
+#' @export
+#' 
+setGeneric("alleleNames", function(x, ...) standardGeneric("alleleNames"))
+
+#' @rdname gtypes.accessors
+#' @aliases loci
+#' @export
+#' 
+setMethod("alleleNames", "gtypes", function(x) {
+  sapply(x@loci, function(l) {
+    as.character(sort(unique(l[!is.na(l)])))
+  }, simplify = FALSE)
+})
 
 #' @rdname gtypes.accessors
 #' @export
@@ -343,7 +366,7 @@ setMethod("[",
   if(length(k) == 0) stop("no strata selected")
   
   i <- i[order(match(i, ids))]
-  x@loci <- x@loci[idRows(i, rownames(x@loci)), j, drop = FALSE]
+  x@loci <- x@loci[idRows(x, i), j, drop = FALSE]
   x@loci <- droplevels(x@loci)
   x@strata <- droplevels(x@strata[i])
   if(!is.null(x@sequences)) {
@@ -361,7 +384,7 @@ setMethod("[",
     warning("The following samples are missing data for all loci and have been removed: ", 
             paste(to.remove, collapse = ", "))
   }
-  x@loci <- x@loci[idRows(to.keep, rownames(x@loci)), , drop = FALSE]
+  x@loci <- x@loci[idRows(x, to.keep), , drop = FALSE]
   x@loci <- droplevels(x@loci)
   x@strata <- droplevels(x@strata[to.keep])
   

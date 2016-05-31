@@ -30,21 +30,21 @@
 #' @return
 #' \describe{
 #'  \item{overall}{a list containing:
-#'    \tabular{ll}{
-#'      \code{strata.freq} \tab a vector of the sample sizes for each stratum.\cr
-#'      \code{result} \tab a matrix with the statistic estimate and p-value 
-#'        for each statistic.\cr
-#'      \code{null.dist} \tab a matrix with the null distributions for 
-#'        each statistic.\cr
+#'    \describe{
+#'      \item{\code{strata.freq}}{a vector of the sample sizes for each stratum}
+#'      \item{\code{result}}{a matrix with the statistic estimate and p-value 
+#'        for each statistic}
+#'      \item{\code{null.dist}}{a matrix with the null distributions for 
+#'        each statistic}
 #'    }}
 #'  \item{pairwise}{a list containing:
-#'    \tabular{ll}{
-#'      \code{result} \tab a data.frame with the result of each pairwise 
-#'        comparison on a line.\cr
-#'      \code{pair.mat} \tab a list with a pairwise matrix for each statistic. 
-#'        Values in lower left are the statistic estimate, and upper right are p-values.\cr
-#'      \code{null.dist} \tab a matrix with the null distributions for 
-#'        each statistic.\cr
+#'    \describe{
+#'      \item{\code{result}}{a data.frame with the result of each pairwise 
+#'        comparison on each row}
+#'      \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic. 
+#'        Values in lower left are the statistic estimate, and upper right are p-values}
+#'      \item{\code{null.dist}}{a matrix with the null distributions for 
+#'        each statistic}
 #'    }}
 #' }
 #' 
@@ -302,7 +302,7 @@ pairwiseTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
   
   # create pairwise matrices - lower left is estimate, upper right is p-value 
   stat.cols <- seq(6, ncol(result), 2)
-  strata <- sort(levels(strata(g)))
+  strata <- levels(strata(g))
   mat <- matrix(nrow = length(strata), ncol = length(strata), 
     dimnames = list(strata, strata)
   )

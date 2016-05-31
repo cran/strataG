@@ -1,7 +1,7 @@
 Package: strataG
 Title: Summaries and Population Structure Analyses of Genetic Data
 Description: A toolkit for analyzing stratified population genetic data.
-Version: 1.0.3
+Version: 1.0.5
 License: GNU General Public License
 Authors@R: c(
   EA = person("Eric", "Archer", email = "eric.archer@noaa.gov", role = c("aut", "cre")),
@@ -9,22 +9,22 @@ Authors@R: c(
   BS = person("Brita", "Schneiders", email = "britaschneiders@u.northwestern.edu", role = c("aut")))
 BugReports: https://github.com/EricArcher/strataG/issues
 Depends: R (>= 3.2.0), apex, adegenet
-Suggests: knitr
+Suggests: knitr, rmarkdown
 Imports: ape, copula, ggplot2, graphics, Hmisc, methods, pegas,
-        RColorBrewer, Rcpp, reshape2, stats, swfscMisc, utils
-Collate: strataG-package.R gtypes.accessors.R gtypes.class.R
-        initialize.gtypes.R internals.R alleleFreqFormat.R
-        alleleFreqs.R alleleSplit.R allelicRichness.R arlequin.R
-        as.matrix.gtypes.R as.multidna.R baseFreqs.R clumpp.R
-        createConsensus.R dupGenotypes.R evanno.R expectedNumAlleles.R
-        fasta.R fastsimcoal.input.R fastsimcoal.R fixedDifferences.R
-        fixedSites.R freq2GenData.R fstToNm.R fusFs.R gelato.R
-        genepop.R haplotypeLikelihoods.R heterozygosity.R Hstats.R
-        hweTest.R idRows.R iupacCode.R jackHWE.R jmodeltest.R
-        labelHaplotypes.R LDgenepop.R lowFreqSubs.R mRatio.R mafft.R
-        mega.R mostDistantSequences.R mostRepresentativeSequences.R
-        neiDa.R nucleotideDivergence.R nucleotideDiversity.R
-        numAlleles.R numGensEq.R numMissing.R parseLocusNames.R
+        phangorn, RColorBrewer, Rcpp, reshape2, stats, swfscMisc, utils
+Collate: strataG-package.R gtypes.class.R gtypes.accessors.R
+        is.gtypes.R initialize.gtypes.R strataG-internal.R
+        as.matrix.gtypes.R as.data.frame.gtypes.R alleleFreqFormat.R
+        alleleFreqs.R alleleSplit.R allelicRichness.R as.multidna.R
+        baseFreqs.R clumpp.R createConsensus.R dupGenotypes.R evanno.R
+        expectedNumAlleles.R fasta.R fastsimcoal.input.R fastsimcoal.R
+        fixedDifferences.R fixedSites.R freq2GenData.R fstToNm.R
+        fusFs.R gelato.R genepop.R haplotypeLikelihoods.R
+        heterozygosity.R Hstats.R hweTest.R idRows.R iupacCode.R
+        jackHWE.R labelHaplotypes.R LDgenepop.R lowFreqSubs.R mRatio.R
+        mafft.R mega.R mostDistantSequences.R
+        mostRepresentativeSequences.R neiDa.R nucleotideDivergence.R
+        nucleotideDiversity.R numAlleles.R numGensEq.R numMissing.R
         permuteStrata.R phase.R popStructStat.R popStructTest.R
         privateAlleles.R propUniqueAlleles.R qaqc.R RcppExports.R
         readGenData.R removeSequences.R sharedLoci.R show.gtypes.R
@@ -32,18 +32,18 @@ Collate: strataG-package.R gtypes.accessors.R gtypes.class.R
         statJostD.R statPhist.R strataSplit.R stratify.R structure.R
         structurePlot.R summarizeLoci.R summarizeSeqs.R
         summary.gtypes.R tajimasD.R theta.R TiTvRatio.R trimNs.R
-        validIupacCodes.R variableSites.R wrightFst.R write.gtypes.R
-        write.nexus.snapp.R gtypes2df.R gtypes2genind.R gtypes2loci.R
-        df2gtypes.R sequence2gtypes.R
+        validIupacCodes.R variableSites.R wrightFst.R write.arlequin.R
+        write.gtypes.R write.nexus.snapp.R gtypes2genind.R
+        gtypes2loci.R df2gtypes.R sequence2gtypes.R gtypes2phyDat.R
 LazyData: true
 VignetteBuilder: knitr
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
-Packaged: 2016-04-04 17:43:31 UTC; eric.archer
+Packaged: 2016-05-30 22:38:19 UTC; eric.archer
 Author: Eric Archer [aut, cre],
   Paula Adams [aut],
   Brita Schneiders [aut]
 Maintainer: Eric Archer <eric.archer@noaa.gov>
 Repository: CRAN
-Date/Publication: 2016-04-04 23:56:51
+Date/Publication: 2016-05-31 07:51:52

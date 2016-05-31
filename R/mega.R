@@ -1,21 +1,27 @@
-#' @name mega
 #' @title Read and Write MEGA
 #' @description Read and write MEGA formatted files.
 #' 
-#' @param file a MEGA-formatted file of sequences.
 #' @param g a \linkS4class{gtypes} object.
-#' @param title title for data in file.
+#' @param file a MEGA-formatted file of sequences.
+#' @param label label for MEGA filename (.meg). If \code{NULL}, the 
+#'   gtypes description is used if present.
 #' @param line.width width of sequence lines.
 #' @param locus number or name of locus to write.
 #' 
 #' @return for \code{read.mega}, a list of:
-#' \tabular{ll}{
-#'   \code{title} \tab title of MEGA file.\cr
-#'   \code{dna.seq} \tab a list of DNA sequences.\cr
+#' \describe{
+#'   \item{title}{title of MEGA file}
+#'   \item{dna.seq}{DNA sequences in \code{\link[ape]{DNAbin}} format}
 #' }
+#' 
+#' @references Sudhir Kumar, Glen Stecher, and Koichiro Tamura (2015) 
+#'   MEGA7: Molecular Evolutionary Genetics Analysis version 7.0. 
+#'   Molecular Biology and Evolution (submitted).
+#'   Available at: \url{http://www.megasoftware.net}
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
+#' @name mega
 #' @aliases mega, MEGA
 #' @export
 #' 
@@ -39,17 +45,12 @@ read.mega <- function(file) {
 #' @rdname mega
 #' @export
 #' 
-write.mega <- function(g, file = NULL, title = NULL, line.width = 60, locus = 1) {
-  if(is.null(file)) {
-    file <- paste(description(g), ".meg", sep = "")
-    file <- gsub("[[:punct:]]", ".", file)
-  }
-  if(is.null(title)) title <- description(g)
-  dna <- sequences(g, locNames(g)[locus])
-  dna <- as.character(as.matrix(dna))
+write.mega <- function(g, file = NULL, label = NULL, line.width = 60, locus = 1) {
+  label <- .getFileLabel(g, label)
+  dna <- as.character(as.matrix(getSequences(sequences(g), locus)))
   
   write("#MEGA", file)
-  write(paste("title:", title, sep = ""), file, append = TRUE)
+  write(paste("title:", description(g), sep = ""), file, append = TRUE)
   write("", file, append = TRUE)
   for(x in names(dna)) {
     write(paste("#", x, sep = ""), file, append = TRUE)

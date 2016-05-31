@@ -18,10 +18,24 @@ LDgenepop(g, show.output = FALSE, delete.files = TRUE,
 
 \item{...}{other arguments to be passed to \code{\link{genepop}}.}
 }
+\value{
+data.frame of disequilibrium estimates between pairs of individuals
+}
 \description{
 Calculate linkage disequilibrium p-values using GENEPOP.
 }
+\examples{
+\dontrun{
+data(msats.g)
+msats.ld <- LDgenepop(msats.g)
+head(msats.ld)
+}
+
+}
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
+}
+\seealso{
+\link{genepop}
 }
 

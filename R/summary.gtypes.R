@@ -1,4 +1,3 @@
-#' @name summary,gtypes-method
 #' @title Summarize gtypes Object
 #' @description Generate a summary of a \code{gtypes} object.
 #'  
@@ -7,29 +6,36 @@
 #' @param ... other arguments (ignored).
 #' 
 #' @return a list with the following elements:
-#' \tabular{ll}{
-#'   \code{num.ind} \tab number of individuals.\cr
-#'   \code{num.loc} \tab number of loci.\cr
-#'   \code{num.strata} \tab number of strata.\cr
-#'   \code{allele.freqs} \tab a list with tables of allele frequencies 
-#'     by strata.\cr
-#'   \code{strata.smry} \tab a by-strata data.frame summarizing haplotypes 
-#'     or loci.\cr
-#'   \code{locus.smry} \tab a data.frame summarizing each locus for 
-#'     non-haploid objects, \code{NULL} for haploid objects.\cr
-#'   \code{seq.smry} \tab a summary of the sequence length and base 
-#'     frequencies.\cr
+#' \describe{
+#'   \item{\code{num.ind}}{number of individuals}
+#'   \item{\code{num.loc}}{number of loci}
+#'   \item{\code{num.strata}}{number of strata}
+#'   \item{\code{unstratified}}{number of unstratified samples}
+#'   \item{\code{schemes}}{names of stratification schemes}
+#'   \item{\code{allele.freqs}}{a list with tables of allele frequencies by strata}
+#'   \item{\code{strata.smry}}{a by-strata data.frame summarizing haplotypes or loci}
+#'   \item{\code{locus.smry}}{a data.frame summarizing each locus for 
+#'     non-haploid objects, \code{NULL} for haploid objects}
+#'   \item{\code{seq.smry}}{a summary of the sequence length and base frequencies}
 #' }
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
+#' @name summary,gtypes-method
+#' @aliases summary
+#' 
+NULL
+
+#' @rdname summary-gtypes-method
 #' @export
 #' 
-setMethod("summary", "gtypes",
-  function(object, ...) { 
+setMethod("summary", "gtypes", function(object, ...) { 
     x <- object
   
     smry <- list(num.ind = nInd(x), num.loc = nLoc(x), num.strata = nStrata(x))
+    smry$unstratified <- sum(is.na(strata(x))) 
+    smry$schemes <- if(!is.null(schemes(x))) colnames(schemes(x)) else NULL
+    
     smry$allele.freqs <- alleleFreqs(x, by.strata = TRUE)
     
     smry$strata.smry <- t(sapply(strataSplit(x), function(g) {
@@ -45,8 +51,6 @@ setMethod("summary", "gtypes",
       )
     }))
     
-    smry$unstratified <- sum(is.na(strata(x))) 
-  
     smry$locus.smry <- if(ploidy(x) > 1) summarizeLoci(x) else NULL
     
     smry$seq.smry <- if(!is.null(sequences(x))) {
@@ -55,10 +59,9 @@ setMethod("summary", "gtypes",
         dna <- as.matrix(dna)
         dna.len <- unlist(lapply(dna, length))
         len.range <- range(dna.len)
-        result <- data.frame(num.seqs = nrow(dna),
-                             min.length = len.range[1], 
-                             mean.length = round(mean(dna.len)), 
-                             max.length = len.range[2]
+        result <- data.frame(
+          num.seqs = nrow(dna), min.length = len.range[1], 
+          mean.length = round(mean(dna.len)), max.length = len.range[2]
         )
         cbind(result, rbind(base.freq(dna)))
       }, simplify = FALSE))
@@ -85,6 +88,7 @@ print.gtypeSummary <- function(x, ... ) {
   cat("<<<", attr(x, "description"), ">>>\n")
   cat("\nContents: ")
   cat(ind.txt, loc.txt, strata.txt, sep = ", ")
+  if(!is.null(x$schemes)) cat("\nStratification schemes:", paste(x$schemes, collapse = ", "))
   cat("\n\nStrata summary:\n")
   print(x$strata.smry)
   if(x$unstratified > 0) cat(x$unstratified, "samples are unstratified\n")

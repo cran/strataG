@@ -1,6 +1,7 @@
 #' @name genepop
 #' @title Run GENEPOP
-#' @description Format output files and run GENEPOP.
+#' @description Format output files and run GENEPOP. Filenames used are returned 
+#'   so that output files can be viewed or read and parsed into R.
 #' 
 #' @param g a \code{\link{gtypes}} object.
 #' @param output.ext character string to use as extension for output files.
@@ -12,17 +13,18 @@
 #' @param other.settings character string of optional GENEPOP command line 
 #'   arguments.
 #' @param input.fname character string to use for input file name.
+#' @param exec name of Genepop executable
 #' 
 #' @note GENEPOP is not included with \code{strataG} and must be downloaded 
 #'   separately. Additionally, it must be installed such that it can be run from 
 #'   the command line in the current working directory. See the vignette 
 #'   for \code{external.programs} for installation instructions.
 #' 
-#' @return \tabular{ll}{
-#'   \code{genepop.write} \tab a vector of the locus names used in the 
-#'     input file, and from.\cr
-#'   \code{genepop.run} \tab a list containing the same vector of locus 
-#'     names and a vector of the filenames used. Both returned invisibly.\cr
+#' @return \describe{
+#'   \item{\code{genepop}}{a list with a vector of the locus names and a vector 
+#'     of the input and output filenames}
+#'   \item{\code{genepopWrite}}{a vector of the locus names used in the 
+#'     input file}
 #' }
 #' 
 #' @references GENEPOP 4.3 (08 July 2014; Rousset, 2008)\cr
@@ -30,11 +32,25 @@
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
+#' @seealso \link{hweTest}, \link{LDgenepop}
+#' 
+#' @examples \dontrun{
+#' # Estimate Nm for the microsatellite data
+#' data(msats.g)
+#' # Run Genepop for Option 4
+#' results <- genepop(msats.g, output.ext = ".PRI", other.settings = "MenuOptions=4")
+#' # Locus name mapping and files
+#' results
+#' # Show contents of output file
+#' file.show(results$files["output.fname"])
+#' }
+#' 
 #' @export
 #' 
 genepop <- function(g, output.ext = "", show.output = F, label = "genepop.run",
                     dem = 10000, batches = 100, iter = 5000, 
-                    other.settings = "", input.fname = "loc_data.txt") {
+                    other.settings = "", input.fname = "loc_data.txt",
+                    exec = "Genepop") {
   
   locus.names <- genepopWrite(g, label, input.fname)
   
@@ -50,7 +66,7 @@ genepop <- function(g, output.ext = "", show.output = F, label = "genepop.run",
   ), file = settings.fname)
   
   # Run Genepop
-  genepop.cmd <- paste("Genepop settingsFile=", settings.fname, sep = "")
+  genepop.cmd <- paste(exec, " settingsFile=", settings.fname, sep = "")
   
   # If user is on Windows, supply show.output.on.console = F, minimized = F, 
   #   invisible = T, else don't
@@ -93,9 +109,8 @@ genepopWrite <- function(g, label = "genepop.write",
     max.width <- max(2, nchar(x))
     formatC(x, width = max.width, flag = "0")
   })
-  id.rows <- idRows(indNames(g), rownames(g@loci))
   
-  loc_dat <- apply(id.rows, 1, function(x) {
+  loc_dat <- apply(idRows(g), 1, function(x) {
     x.loc <- apply(g.mat, 2, function(loc) paste(loc[x], collapse = ""))
     paste(x.loc, collapse = " ")
   })

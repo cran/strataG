@@ -6,7 +6,7 @@
 \alias{labelHaplotypes.gtypes}
 \title{Find and label haplotypes}
 \usage{
-labelHaplotypes(x, prefix = NULL, use.indels = FALSE)
+labelHaplotypes(x, prefix = NULL, use.indels = TRUE)
 
 \method{labelHaplotypes}{default}(x, prefix = NULL, use.indels = TRUE)
 
@@ -25,24 +25,23 @@ from original sequences.}
 \item{...}{arguments to be passed to \code{labelHaplotypes.default}.}
 }
 \value{
-\code{DNAbin} or \code{multidna}, a list with the following elements:
-    \tabular{ll}{
-      \code{haps} \tab named vector (\code{DNAbin}) or list of named vectors
-        (\code{multidina}) of haplotypes for each sequence in \code{x}.\cr
-      \code{hap.seqs} \tab \code{DNAbin} or \code{multidna} object
-        containing sequences for each haplotype.\cr
-      \code{unassigned} \tab \code{data.frame} listing closest matching
-        haplotypes and the number of substitutions different. Will be
-        \code{NULL} if no sequences remain unassigned.
-    }
-  \code{gtypes}, a list with the following elements:
-    \tabular{ll}{
-      \code{gtypes} \tab the new \code{gtypes} object with the haplotypes
-        reassigned.\cr
-      \code{unassigned} \tab a list containing the \code{unassigned}
-        attribute \code{data.frame} for each gene if present,
-        otherwise \code{NULL}.\cr
-     }
+For \code{DNAbin} or \code{multidna}, a list with the following elements:
+ \describe{
+   \item{haps}{named vector (\code{DNAbin}) or list of named vectors
+     (\code{multidina}) of haplotypes for each sequence in \code{x}.}
+   \item{hap.seqs}{\code{DNAbin} or \code{multidna} object containing 
+     sequences for each haplotype.}
+   \item{unassigned}{\code{data.frame} listing closest matching haplotypes 
+     and the number of substitutions different. Will be \code{NULL} if no 
+     sequences remain unassigned.}
+ }
+ 
+ For \code{gtypes}, a list with the following elements:
+ \describe{
+   \item{gtypes}{the new \code{gtypes} object with the haplotypes reassigned.}
+   \item{unassigned}{a list containing the \code{unassigned} attribute 
+     \code{data.frame} for each gene if present, otherwise \code{NULL}.}
+ }
 }
 \description{
 Identify and group sequences that share the same haplotype.

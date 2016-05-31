@@ -1,4 +1,3 @@
-#' @name gtypes2genind
 #' @title Convert Between \code{gtypes} And \code{genind} objects.
 #' @description Convert a \code{gtypes} object to a \code{genind} object 
 #'   and vice-versa.
@@ -12,18 +11,34 @@
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
-#' @seealso \link{initialize.gtypes}, \link{df2gtypes}, \link{sequence2gtypes}, 
-#'   \link{gtypes2df}, \link{gtypes2loci}
+#' @seealso \link{initialize.gtypes}, \link{df2gtypes}, 
+#'   \link{sequence2gtypes}, \link{as.data.frame.gtypes}, 
+#'   \link{gtypes2loci}
 #' 
+#' @examples
+#' data(msats.g)
+#' 
+#' # Convert to genind
+#' gi <- gtypes2genind(msats.g)
+#' gi
+#' 
+#' # Convert to gtypes
+#' gt <- genind2gtypes(gi)
+#' gt
+#' 
+#' @name gtypes2genind
 #' @export
 #' 
 gtypes2genind <- function(x, type = c("codom", "PA")) {
-  df2genind(X = as.matrix(x, one.col = TRUE, sep = "/"),
-            sep = "/", 
-            pop = strata(x),
-            NA.char = NA,
-            ploidy = ploidy(x),
-            type = match.arg(type)
+  x.mat <- as.matrix(x, one.col = TRUE, sep = "/", ids = FALSE, strata = FALSE)
+  df2genind(
+    X = x.mat,
+    sep = "/", 
+    pop = strata(x)[rownames(x.mat)],
+    NA.char = NA,
+    ploidy = ploidy(x),
+    type = match.arg(type),
+    strata = schemes(x)[rownames(x.mat), ]
   )
 }
 
@@ -35,11 +50,13 @@ genind2gtypes <- function(x) {
   gen.mat <- genind2df(x, usepop = TRUE, oneColPerAll = TRUE)
   gen.mat[gen.mat == "NA"] <- NA
   has.pop <- !is.null(x@pop)
-  df2gtypes(x = gen.mat,
-            ploidy = x@ploidy[1],
-            id.col = NULL,
-            strata.col = if(has.pop) 1 else NULL,
-            loc.col = if(has.pop) 2 else 1,
-            other = other(x)
+  df2gtypes(
+    x = gen.mat,
+    ploidy = x@ploidy[1],
+    id.col = NULL,
+    strata.col = if(has.pop) 1 else NULL,
+    loc.col = if(has.pop) 2 else 1,
+    schemes = x@strata,
+    other = other(x)
   )  
 }

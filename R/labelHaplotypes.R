@@ -1,4 +1,3 @@
-#' @name labelHaplotypes
 #' @title Find and label haplotypes
 #' @description Identify and group sequences that share the same haplotype.
 #'
@@ -19,24 +18,23 @@
 #'   \code{unassigned} element.
 #'
 #' @return
-#'   \code{DNAbin} or \code{multidna}, a list with the following elements:
-#'     \tabular{ll}{
-#'       \code{haps} \tab named vector (\code{DNAbin}) or list of named vectors
-#'         (\code{multidina}) of haplotypes for each sequence in \code{x}.\cr
-#'       \code{hap.seqs} \tab \code{DNAbin} or \code{multidna} object
-#'         containing sequences for each haplotype.\cr
-#'       \code{unassigned} \tab \code{data.frame} listing closest matching
-#'         haplotypes and the number of substitutions different. Will be
-#'         \code{NULL} if no sequences remain unassigned.
-#'     }
-#'   \code{gtypes}, a list with the following elements:
-#'     \tabular{ll}{
-#'       \code{gtypes} \tab the new \code{gtypes} object with the haplotypes
-#'         reassigned.\cr
-#'       \code{unassigned} \tab a list containing the \code{unassigned}
-#'         attribute \code{data.frame} for each gene if present,
-#'         otherwise \code{NULL}.\cr
-#'      }
+#'  For \code{DNAbin} or \code{multidna}, a list with the following elements:
+#'  \describe{
+#'    \item{haps}{named vector (\code{DNAbin}) or list of named vectors
+#'      (\code{multidina}) of haplotypes for each sequence in \code{x}.}
+#'    \item{hap.seqs}{\code{DNAbin} or \code{multidna} object containing 
+#'      sequences for each haplotype.}
+#'    \item{unassigned}{\code{data.frame} listing closest matching haplotypes 
+#'      and the number of substitutions different. Will be \code{NULL} if no 
+#'      sequences remain unassigned.}
+#'  }
+#'  
+#'  For \code{gtypes}, a list with the following elements:
+#'  \describe{
+#'    \item{gtypes}{the new \code{gtypes} object with the haplotypes reassigned.}
+#'    \item{unassigned}{a list containing the \code{unassigned} attribute 
+#'      \code{data.frame} for each gene if present, otherwise \code{NULL}.}
+#'  }
 #'
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #'
@@ -69,11 +67,12 @@
 #'
 #' hap.assign <- labelHaplotypes(sample.seqs, prefix = "Hap.")
 #' hap.assign
-#'
+#' 
+#' @name labelHaplotypes
 #' @importFrom swfscMisc zero.pad
 #' @export
 #'
-labelHaplotypes <- function(x, prefix = NULL, use.indels = FALSE) {
+labelHaplotypes <- function(x, prefix = NULL, use.indels = TRUE) {
   UseMethod("labelHaplotypes")
 }
 
@@ -83,17 +82,17 @@ labelHaplotypes <- function(x, prefix = NULL, use.indels = FALSE) {
 labelHaplotypes.default  <- function(x, prefix = NULL, use.indels = TRUE) {
   if(!inherits(x, "DNAbin")) stop("'x' must be a DNAbin object.")
   x <- as.matrix(x)
-  
+
   # return same data if only one sequence exists
   if(nrow(x) == 1) {
     haps <- rownames(x)
     names(haps) <- haps
     return(list(haps = haps, hap.seqs = x, unassigned = NULL))
   }
-  
+
   # find sequences without Ns
   has.ns <- apply(as.character(x), 1, function(bases) "n" %in% tolower(bases))
-  if(sum(!has.ns) == 1) {  
+  if(sum(!has.ns) == 1) {
     warning("There is only one sequence without ambiguities (N's). Can't assign haplotypes. NULL returned.",
             call. = FALSE, immediate. = TRUE)
     return(NULL)
@@ -120,9 +119,7 @@ labelHaplotypes.default  <- function(x, prefix = NULL, use.indels = TRUE) {
     names(sort(hap.order))
   } else {
     # if no prefix, use first sequence name for each haplotype
-    #hap.code.sort <- hap.code[order(names(hap.code))]
-    #names(sort(hap.code[!duplicated(hap.code.sort)]))
-    names(hap.code[!duplicated(hap.code)])
+    names(hap.code)[!duplicated(hap.code)]
   }
   hap.code <- hap.labels[hap.code]
   names(hap.code) <- rownames(hap.dist)
@@ -190,7 +187,7 @@ labelHaplotypes.gtypes <- function(x, ...) {
   if(ploidy(x) > 1 | is.null(sequences(x))) {
     stop("'x' is not haploid or does not have any sequences")
   }
-  
+
   # label haplotypes for each gene
   new.haps <- lapply(
     getSequences(sequences(x), simplify = FALSE), labelHaplotypes, ...
@@ -201,26 +198,26 @@ labelHaplotypes.gtypes <- function(x, ...) {
     msg <- paste("haplotypes could not be assigned for:", msg)
     stop(msg)
   }
-  
+
   # create haplotype data.frame
-  hap.df <- gtypes2df(x)
+  hap.df <- as.data.frame(x, stringsAsFactors = FALSE)
   for(gene in names(new.haps)) {
     old.haps <- hap.df[, gene]
     hap.df[, gene] <- new.haps[[gene]]$haps[old.haps]
   }
-  
+
   # collect sequences
   hap.seqs <- lapply(new.haps, function(x) x$hap.seqs)
   names(hap.seqs) <- names(new.haps)
-  
+
   # collect unassigned
   unassigned <- lapply(new.haps, function(x) x$unassigned)
-  
+
   # create new gtypes
   st <- strata(x)
   x <- df2gtypes(
     hap.df, ploidy = 1, id.col = 1, strata.col = 2, loc.col = 3,
-    sequences = hap.seqs, description = description(x), schemes = schemes(x), 
+    sequences = hap.seqs, description = description(x), schemes = schemes(x),
     other = other(x)
   )
   strata(x) <- st

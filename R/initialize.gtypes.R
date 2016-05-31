@@ -37,7 +37,7 @@
 #'
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #'
-#' @seealso \link{df2gtypes}, \link{sequence2gtypes}, \link{gtypes2df},
+#' @seealso \link{df2gtypes}, \link{sequence2gtypes},
 #'   \link{gtypes2genind}, \link{gtypes2loci}
 #'
 #' @aliases initialize.gtypes new
@@ -169,7 +169,7 @@ setMethod("initialize", "gtypes",
     warning("The following samples are missing data for all loci and have been removed: ", 
             paste(to.remove, collapse = ", "))
   }
-  g@loci <- g@loci[idRows(to.keep, rownames(g@loci)), , drop = FALSE]
+  g@loci <- g@loci[idRows(g, to.keep), , drop = FALSE]
   g@loci <- droplevels(g@loci)
   
   if(remove.sequences) g <- removeSequences(g)

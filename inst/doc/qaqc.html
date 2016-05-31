@@ -11,7 +11,7 @@
 
 <meta name="author" content="Eric Archer" />
 
-<meta name="date" content="2016-04-04" />
+<meta name="date" content="2016-04-19" />
 
 <title>QA/QC</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title">QA/QC</h1>
 <h4 class="author"><em>Eric Archer</em></h4>
-<h4 class="date"><em>2016-04-04</em></h4>
+<h4 class="date"><em>2016-04-19</em></h4>
 
 </div>
 
@@ -95,32 +95,52 @@ smry &lt;-<span class="st"> </span><span class="kw">summarizeLoci</span>(msats)
 <p>The <em>dupGenotypes</em> function identifies samples that have the same or nearly the same genotypes. The number (or percent) of loci that must be shared in order for it to be considered a duplicate can be set by the <em>num.shared</em> argument. The return data.frame provides which loci the two samples show mismatches at so they can be reviewed.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Find samples that share alleles at 2/3rds of the loci</span>
 <span class="kw">dupGenotypes</span>(msats, <span class="dt">num.shared =</span> <span class="fl">0.66</span>)</code></pre></div>
-<pre><code>##    ids.1 ids.2 strata.1 strata.2 num.loci.genotyped num.loci.shared
-## 1  41579 45237  Coastal  Coastal                  5               5
-## 2  23945 78065  Coastal  Coastal                  5               4
-## 3  25503 78053  Coastal  Coastal                  5               4
-## 4  25509 41822  Coastal  Coastal                  5               4
-## 5  41540 78040  Coastal  Coastal                  5               4
-## 6  41578 45233  Coastal  Coastal                  5               4
-## 7  44720 78058  Coastal  Coastal                  5               4
-## 8  45230 78040  Coastal  Coastal                  5               4
-## 9  78034 78040  Coastal  Coastal                  5               4
-## 10 78034 78043  Coastal  Coastal                  5               4
-## 11 78035 78053  Coastal  Coastal                  5               4
-## 12 78045 78058  Coastal  Coastal                  5               4
+<pre><code>##    ids.1 ids.2       strata.1 strata.2 num.loci.genotyped num.loci.shared
+## 1  41579 45237        Coastal  Coastal                  4               4
+## 2  23945 78065        Coastal  Coastal                  5               4
+## 3  78034 78040        Coastal  Coastal                  5               4
+## 4  78034 78043        Coastal  Coastal                  5               4
+## 5  78035 78053        Coastal  Coastal                  5               4
+## 6  78045 78058        Coastal  Coastal                  5               4
+## 7  25503 78053        Coastal  Coastal                  5               4
+## 8  25509 41822        Coastal  Coastal                  5               4
+## 9  41540 78040        Coastal  Coastal                  5               4
+## 10 41578 45233        Coastal  Coastal                  5               4
+## 11 44720 78058        Coastal  Coastal                  5               4
+## 12 45230 78040        Coastal  Coastal                  5               4
+## 13 40916 78038        Coastal  Coastal                  4               3
+## 14 41820 42193        Coastal  Coastal                  4               3
+## 15 42193 44719        Coastal  Coastal                  4               3
+## 16 42193 45230        Coastal  Coastal                  4               3
+## 17 42193 78035        Coastal  Coastal                  4               3
+## 18 42193 78045        Coastal  Coastal                  4               3
+## 19  4495 41821 Offshore.North  Coastal                  3               2
+## 20  4495 78041 Offshore.North  Coastal                  3               2
+## 21  4495 78054 Offshore.North  Coastal                  3               2
+## 22  4495 78056 Offshore.North  Coastal                  3               2
 ##    prop.loci.shared mismatch.loci
-## 1               1.0              
-## 2               0.8          EV37
-## 3               0.8         Ttr11
-## 4               0.8         Ttr34
-## 5               0.8          D11t
-## 6               0.8          EV94
-## 7               0.8          EV94
-## 8               0.8         Ttr11
-## 9               0.8          EV94
-## 10              0.8          EV37
-## 11              0.8          D11t
-## 12              0.8         Ttr34</code></pre>
+## 1              1.00              
+## 2              0.80          EV37
+## 3              0.80          EV94
+## 4              0.80          EV37
+## 5              0.80          D11t
+## 6              0.80         Ttr34
+## 7              0.80         Ttr11
+## 8              0.80         Ttr34
+## 9              0.80          D11t
+## 10             0.80          EV94
+## 11             0.80          EV94
+## 12             0.80         Ttr11
+## 13             0.75         Ttr34
+## 14             0.75         Ttr11
+## 15             0.75          EV94
+## 16             0.75          EV94
+## 17             0.75         Ttr34
+## 18             0.75          EV94
+## 19             0.67         Ttr11
+## 20             0.67         Ttr11
+## 21             0.67         Ttr11
+## 22             0.67         Ttr11</code></pre>
 <p>The start and end positions and number of N’s and indels can be generated with the <em>summarizeSeqs</em> function:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">data</span>(dolph.seqs)
 seq.smry &lt;-<span class="st"> </span><span class="kw">summarizeSeqs</span>(<span class="kw">as.DNAbin</span>(dolph.seqs))

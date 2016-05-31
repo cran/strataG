@@ -7,7 +7,17 @@
 #' @param label character string to use to label GENEPOP input and output files.
 #' @param ... other arguments to be passed to \code{\link{genepop}}.
 #' 
+#' @return data.frame of disequilibrium estimates between pairs of individuals
+#' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
+#' 
+#' @seealso \link{genepop}
+#' 
+#' @examples \dontrun{
+#' data(msats.g)
+#' msats.ld <- LDgenepop(msats.g)
+#' head(msats.ld)
+#' }
 #' 
 #' @export
 #' 
@@ -17,7 +27,7 @@ LDgenepop <- function(g, show.output = FALSE, delete.files = TRUE,
   # Run Genepop
   g <- stratify(g, rep("1", nInd(g)))
   output <- genepop(g, output.ext = ".DIS", show.output = show.output, 
-                    label = label, other.settings = "MenuOptions=2.1")
+                    label = label, other.settings = "MenuOptions=2.1", ...)
   if(!is.list(output)) return(NULL)
   
   result <- scan(output$files["output.fname"], what = "character", quiet = TRUE)
