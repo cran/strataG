@@ -31,6 +31,7 @@
 #' 
 gtypes2genind <- function(x, type = c("codom", "PA")) {
   x.mat <- as.matrix(x, one.col = TRUE, sep = "/", ids = FALSE, strata = FALSE)
+  colnames(x.mat) <- gsub("[.]", "_", colnames(x.mat))
   df2genind(
     X = x.mat,
     sep = "/", 
@@ -38,7 +39,7 @@ gtypes2genind <- function(x, type = c("codom", "PA")) {
     NA.char = NA,
     ploidy = ploidy(x),
     type = match.arg(type),
-    strata = schemes(x)[rownames(x.mat), ]
+    strata = schemes(x)[rownames(x.mat), , drop = FALSE]
   )
 }
 

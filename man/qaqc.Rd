@@ -16,7 +16,7 @@ qaqc(g, label = NULL, ...)
 \value{
 Files are written for by-sample and by-locus summaries, and duplicate 
   genotypes if any are found. If sequences are present, files are written 
-  identifying low frequency substitutions and haplotype likelihoods.\cr
+  identifying low frequency substitutions and sequence likelihoods.\cr
   The return value is a list with the following elements:
   
 \describe{
@@ -32,9 +32,13 @@ Conducts a suite of QA/QC tests. Summarizes missing data and
   homozygosity by individual and locus, and looks for duplicate genotypes 
   (see \code{\link{dupGenotypes}}). For sequence data, identifies low 
   frequency substitutions (see \code{\link{lowFreqSubs}}), and computes 
-  haplotype likelihoods (see \code{\link{haplotypeLikelihoods}}).
+  sequence likelihoods (see \code{\link{sequenceLikelihoods}}).
+}
+\seealso{
+\code{\link{summarizeSamples}}, \code{\link{summarizeLoci}}, 
+  \code{\link{dupGenotypes}}, \code{\link{lowFreqSubs}}, 
+  \code{\link{sequenceLikelihoods}}
 }
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
 }
-

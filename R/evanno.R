@@ -3,9 +3,13 @@
 #'   from STRUCTURE results based on Evanno et al. 2005.
 #' 
 #' @param sr output from a call to \code{\link{structure}}.
-#' @param plot logical. Generate a plot of Evanno metrics.
+#' @param plot logical. Generate a plot of Evanno metrics?
 #' 
-#' @return a data.frame with Evanno log-likelihood metrics for each value of K.
+#' @return a list with:
+#' \describe{
+#'   \item{\code{df}}{data.frame with Evanno log-likelihood metrics for each value of K.}
+#'   \item{\code{plots}}{list of four ggplot objects for later plotting.}
+#' }
 #' 
 #' @references Evanno, G., Regnaut, S., and J. Goudet. 2005. Detecting the 
 #'   number of clusters of individuals using the software STRUCTURE: a 
@@ -27,7 +31,9 @@
 #' }
 #' 
 #' @importFrom stats sd
-#' @importFrom graphics par layout segments axis box text
+#' @importFrom ggplot2 ggplot aes_string geom_line geom_segment geom_point xlim ylab theme element_blank theme_void geom_text ggplot_gtable ggplot_build
+#' @importFrom grid unit.pmax
+#' @importFrom gridExtra grid.arrange
 #' @export
 #' 
 evanno <- function(sr, plot = TRUE) {
@@ -53,7 +59,7 @@ evanno <- function(sr, plot = TRUE) {
     abs(ln.k[i + 1] - (2 * ln.k[i]) + ln.k[i - 1]) / sd.ln.k[i]
   })
   
-  result <- data.frame(
+  df <- data.frame(
     k = as.numeric(names(ln.k)),
     reps = as.numeric(table(sr.smry[, "k"])),
     mean.ln.k = as.numeric(ln.k),
@@ -62,49 +68,44 @@ evanno <- function(sr, plot = TRUE) {
     ln.ppk = c(NA, ln.ppk, NA),
     delta.k = c(NA, delta.k,  NA)
   )
-  rownames(result) <- NULL
+  rownames(df) <- NULL
   
+  # Build plots
+  df$sd.min <- df$mean.ln.k - df$sd.ln.k
+  df$sd.max <- df$mean.ln.k + df$sd.ln.k
+  
+  plot.list <- list(
+    mean.ln.k = ggplot(df, aes_string(x = "k", y = "mean.ln.k")) +
+      ylab("mean LnP(K)") +
+      geom_segment(aes_string(x = "k", xend = "k", y = "sd.min", yend = "sd.max")),
+    ln.pk = ggplot(df[!is.na(df$ln.pk), ], aes_string(x = "k", y = "ln.pk")) +
+      ylab("LnP'(K)"),
+    ln.ppk = ggplot(df[!is.na(df$ln.ppk), ], aes_string(x = "k", y = "ln.ppk")) +
+      ylab("LnP''(K)")
+  )
+  if(!all(is.na(df$delta.k))) {
+    plot.list$delta.k <- ggplot(df[!is.na(df$delta.k), ], aes_string(x = "k", y = "delta.k")) +
+        ylab(expression(Delta(K)))
+  }
+  
+  for(i in 1:length(plot.list)) {
+    plot.list[[i]] <- plot.list[[i]] + 
+      geom_line() +
+      geom_point(fill = "white", shape = 21, size = 3) +
+      xlim(c(1, max(df$k))) +
+      theme(axis.title.x = element_blank())
+  }
+
   if(plot) {
-    xlim <- range(c(0, result$k))
-    tick.spacing <- if(max(result$k) < 10) {
-      1
-    } else if(max(result$k) < 20) {
-      2
-    } else 5
-    xticks <- seq(0, max(result$k), tick.spacing)
-    
-    op <- par(mar = c(4, 4, 1, 1) + 0.1)
-    layout(matrix(1:4, nrow = 2, byrow = TRUE))
-    
-    plot.func <- function(y, ylab, sd = NULL) {
-      ylim <- if(is.null(sd)) {
-        range(y, na.rm = TRUE) 
-      } else {
-        sd[is.na(sd)] <- 0
-        range(c(y, y + sd, y - sd), na.rm = TRUE)
-      }     
-      plot(result$k, y, xlim = xlim, ylim = ylim, type = "b", 
-           xlab = "K", ylab = ylab, axes = F, 
-           bty = "l", pch = 19, bg = "black")
-      if(!is.null(sd)) segments(result$k, y + sd, result$k, y - sd)
-      axis(1, at = xticks[-1])
-      axis(2)
-      box(bty = "l")
-    }
-    
-    plot.func(result$mean.ln.k, "mean LnP(K)", sd = result$sd.ln.k)
-    plot.func(result$ln.pk, "LnP'(K)")
-    plot.func(result$ln.ppk, "LnP''(K)")
-    if(!all(is.na(result$delta.k))) {
-      plot.func(result$delta.k, "Delta(K)")
-    } else {
-      plot(0, type = "n", ann = FALSE, axes = FALSE)
-      text(mean(par("usr")[1:2]), mean(par("usr")[3:4]), "N/A")
-    }
-    
-    layout(matrix(1))
-    par(op)
+    p <- lapply(plot.list, function(x) ggplot_gtable(ggplot_build(x)))
+    maxWidth <- do.call(unit.pmax, lapply(p, function(x) x$widths[2:3]))
+    for(i in 1:length(p)) p[[i]]$widths[2:3] <- maxWidth
+    p$bottom <- "K"
+    p$ncol <- 2
+    do.call(grid.arrange, p)
   } 
   
-  result
+  df$sd.min <- df$sd.max <- NULL
+  print(df)
+  invisible(list(df = df, plots = plot.list))
 }

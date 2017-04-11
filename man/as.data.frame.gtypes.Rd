@@ -2,13 +2,13 @@
 % Please edit documentation in R/as.data.frame.gtypes.R
 \docType{methods}
 \name{as.data.frame.gtypes}
-\alias{as.data.frame}
-\alias{as.data.frame,gtypes-method}
 \alias{as.data.frame.gtypes}
+\alias{as.data.frame,gtypes-method}
+\alias{as.data.frame}
 \title{Convert \code{gtypes} To \code{data.frame}}
 \usage{
 \S4method{as.data.frame}{gtypes}(x, one.col = FALSE, sep = "/",
-  ids = TRUE, strata = TRUE, ...)
+  ids = TRUE, strata = TRUE, sort.alleles = TRUE, ...)
 }
 \arguments{
 \item{x}{a \linkS4class{gtypes} object.}
@@ -23,7 +23,10 @@ locus.}
 
 \item{strata}{logical. include a column for current statification (\code{strata})?}
 
-\item{...}{additional arguments ot be passed to or from methods.}
+\item{sort.alleles}{logical. for non-haploid objects, should alleles be sorted 
+in genotypes or left in original order? (only takes affect if \code{one.col = TRUE})}
+
+\item{...}{additional arguments to be passed to or from methods.}
 }
 \value{
 A \code{data.frame} with one row per sample.
@@ -47,10 +50,9 @@ genotypes.df <- as.data.frame(msats.g, one.col = TRUE, ids = FALSE, strata = FAL
 str(genotypes.df)
 
 }
+\seealso{
+\link{df2gtypes} \link[strataG]{as.matrix} \link[strataG]{as.array}
+}
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
 }
-\seealso{
-\link{df2gtypes} \link[strataG]{as.matrix}
-}
-

@@ -9,10 +9,14 @@ evanno(sr, plot = TRUE)
 \arguments{
 \item{sr}{output from a call to \code{\link{structure}}.}
 
-\item{plot}{logical. Generate a plot of Evanno metrics.}
+\item{plot}{logical. Generate a plot of Evanno metrics?}
 }
 \value{
-a data.frame with Evanno log-likelihood metrics for each value of K.
+a list with:
+\describe{
+  \item{\code{df}}{data.frame with Evanno log-likelihood metrics for each value of K.}
+  \item{\code{plots}}{list of four ggplot objects for later plotting.}
+}
 }
 \description{
 Calculate first and second order rates of changes of LnPr(K) 
@@ -31,9 +35,6 @@ evno
 }
 
 }
-\author{
-Eric Archer \email{eric.archer@noaa.gov}
-}
 \references{
 Evanno, G., Regnaut, S., and J. Goudet. 2005. Detecting the 
   number of clusters of individuals using the software STRUCTURE: a 
@@ -42,4 +43,6 @@ Evanno, G., Regnaut, S., and J. Goudet. 2005. Detecting the
 \seealso{
 \code{\link{structure}} \code{\link{clumpp}}
 }
-
+\author{
+Eric Archer \email{eric.archer@noaa.gov}
+}

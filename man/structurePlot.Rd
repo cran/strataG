@@ -5,7 +5,7 @@
 \title{Plot STRUCTURE Results}
 \usage{
 structurePlot(q.mat, pop.col = 3, prob.col = 4, sort.probs = TRUE,
-  label.pops = TRUE, col = NULL, horiz = TRUE,
+  label.pops = TRUE, col = NULL, horiz = TRUE, type = NULL,
   legend.position = c("top", "left", "right", "bottom", "none"))
 }
 \arguments{
@@ -26,6 +26,11 @@ populations? If \code{FALSE} individuals will be plotted as in \code{q.mat}.}
 
 \item{horiz}{logical. Plot bars horizontally.}
 
+\item{type}{either \code{"area"} for stacked continuous area plot or 
+\code{"bar"} for discrete stacked bar chart. The latter is prefered for small 
+numbers of samples. If not specified, a bar chart will be used if there are 
+<= 100 samples.}
+
 \item{legend.position}{the position of the legend (\code{"top", "left", 
 "right", "bottom"}, or two-element numeric vector).}
 }
@@ -36,10 +41,9 @@ invisibly, the ggplot object
 Plot Q-matrix from a call to \code{\link{structure}} or 
   \code{\link{clumpp}}.
 }
-\author{
-Eric Archer \email{eric.archer@noaa.gov}
-}
 \seealso{
 \code{\link{structure}}, \code{\link{clumpp}}
 }
-
+\author{
+Eric Archer \email{eric.archer@noaa.gov}
+}

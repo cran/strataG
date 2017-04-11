@@ -4,7 +4,9 @@
 #' @param g a \linkS4class{gtypes} object.
 #' 
 #' @note For a measure of haplotypic diversity (haploid "heterozygosity"), 
-#'   use \code{exptdHet}.
+#'   use \code{exptdHet}. If \code{g} is a haploid object with sequences, make sure to run 
+#'   \code{\link{labelHaplotypes}} if sequences aren't already grouped by 
+#'   haplotype.
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
@@ -27,7 +29,7 @@ NULL
 #' @export
 #' 
 exptdHet <- function(g) {
-  apply(loci(g), 2, swfscMisc::diversity)
+  .applyPerLocus(swfscMisc::diversity, g)
 }
 
 
@@ -36,9 +38,9 @@ exptdHet <- function(g) {
 #' @export
 #' 
 obsvdHet <- function(g) {
-  apply(loci(g), 2, function(locus) {
-    locus <- na.omit(matrix(locus, ncol = ploidy(g)))
-    is.homozgt <- apply(locus, 1, function(x) length(unique(x)) == 1)
-    1 - (sum(is.homozgt) / nrow(locus))
-  })
+  isHom <- function(x) {
+    if(any(is.na(x))) NA else length(unique(x)) == 1
+  }
+  is.homzgt <- g@data[, lapply(.SD, isHom), .SDcols = !c("ids", "strata"), by = "ids"]
+  is.homzgt[, 1 - sapply(.SD, mean, na.rm = TRUE), .SDcols = !"ids"]
 }

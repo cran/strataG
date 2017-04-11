@@ -2,50 +2,55 @@
 % Please edit documentation in R/gtypes.accessors.R
 \docType{methods}
 \name{gtypes.accessors}
-\alias{[,gtypes,ANY,ANY,ANY-method}
-\alias{accessors}
-\alias{alleleNames}
-\alias{alleleNames,gtypes-method}
-\alias{description}
-\alias{description,gtypes-method}
 \alias{gtypes.accessors}
-\alias{indNames}
-\alias{indNames,gtypes-method}
-\alias{index}
-\alias{locNames}
-\alias{locNames,gtypes-method}
-\alias{loci}
-\alias{loci,gtypes-method}
-\alias{nInd}
+\alias{accessors}
 \alias{nInd,gtypes-method}
-\alias{nLoc}
+\alias{nInd}
 \alias{nLoc,gtypes-method}
+\alias{nLoc}
 \alias{nStrata}
 \alias{nStrata,gtypes-method}
-\alias{other}
-\alias{other,gtypes-method}
-\alias{ploidy}
-\alias{ploidy,gtypes-method}
-\alias{schemes}
-\alias{schemes,gtypes-method}
-\alias{schemes<-}
-\alias{schemes<-,gtypes-method}
-\alias{sequences}
-\alias{sequences,gtypes-method}
-\alias{strata}
-\alias{strata,gtypes-method}
-\alias{strata<-}
-\alias{strata<-,gtypes-method}
+\alias{nStrata}
+\alias{indNames,gtypes-method}
+\alias{indNames}
+\alias{locNames,gtypes-method}
+\alias{locNames}
 \alias{strataNames}
 \alias{strataNames,gtypes-method}
+\alias{strataNames}
+\alias{ploidy,gtypes-method}
+\alias{ploidy}
+\alias{other,gtypes-method}
+\alias{other}
+\alias{strata,gtypes-method}
+\alias{strata}
+\alias{strata<-}
+\alias{strata<-,gtypes-method}
+\alias{strata}
+\alias{schemes}
+\alias{schemes,gtypes-method}
+\alias{schemes}
+\alias{schemes<-}
+\alias{schemes<-,gtypes-method}
+\alias{schemes}
+\alias{alleleNames}
+\alias{alleleNames,gtypes-method}
+\alias{alleleNames}
+\alias{sequences}
+\alias{sequences,gtypes-method}
+\alias{sequences}
+\alias{description}
+\alias{description,gtypes-method}
+\alias{description}
+\alias{description<-}
+\alias{description<-,gtypes-method}
+\alias{description}
+\alias{[,gtypes,ANY,ANY,ANY-method}
+\alias{index}
 \alias{subset}
 \title{\code{gtypes} Accessors}
 \usage{
-nInd(x, ...)
-
 \S4method{nInd}{gtypes}(x, ...)
-
-nLoc(x, ...)
 
 \S4method{nLoc}{gtypes}(x, ...)
 
@@ -79,10 +84,6 @@ schemes(x) <- value
 
 \S4method{schemes}{gtypes}(x) <- value
 
-loci(x, ...)
-
-\S4method{loci}{gtypes}(x, ids = NULL, loci = NULL)
-
 alleleNames(x, ...)
 
 \S4method{alleleNames}{gtypes}(x)
@@ -95,6 +96,10 @@ description(x, ...)
 
 \S4method{description}{gtypes}(x, ...)
 
+description(x) <- value
+
+\S4method{description}{gtypes}(x) <- value
+
 \S4method{[}{gtypes,ANY,ANY,ANY}(x, i, j, k, ..., quiet = TRUE,
   drop = FALSE)
 }
@@ -105,21 +110,18 @@ description(x, ...)
 
 \item{value}{value being assigned by accessor.}
 
-\item{ids}{vector of individual ids.}
-
-\item{loci}{vector of loci.}
-
 \item{seqName}{the name (or number) of a set of sequences from the 
 \code{@sequences} slot to return.}
 
 \item{as.haplotypes}{return sequences as haplotypes? If \code{TRUE}, contents of 
-\code{@sequences} slot are returned. If \code{FALSE}, one sequence per individual 
-is returned.}
+\code{@sequences} slot are returned. If \code{FALSE}, one sequence per 
+individual is returned.}
 
 \item{i, j, k}{subsetting slots for individuals (\code{i}), loci (\code{j}),
 or strata (\code{k}). See Details for more information.}
 
-\item{quiet}{suppress warnings about unmatched requested individuals, loci, or strata?}
+\item{quiet}{suppress warnings about unmatched requested individuals, loci, 
+or strata?}
 
 \item{drop}{if \code{TRUE} the return object will have unused sequences removed.}
 }
@@ -135,10 +137,9 @@ or strata (\code{k}). See Details for more information.}
   \item{other}{contents of \code{@other} slot}
   \item{strata}{return or modify the current stratification}
   \item{schemes}{return or modify the current stratification schemes}
-  \item{loci}{return a data.frame of the alleles for the specified ids and loci}
   \item{alleleNames}{return a list of alleles at each locus}
-  \item{sequences}{return the \linkS4class{multidna} object in 
-    the \code{@sequences} slot. See \code{\link[apex]{getSequences}} to 
+  \item{sequences}{return the \linkS4class{multidna} object in the 
+    \code{@sequences} slot. See \code{\link[apex]{getSequences}} to 
     extract individual genes or sequences from this object}
   \item{description}{return the object's description}
 }
@@ -148,8 +149,8 @@ Accessors for slots in \linkS4class{gtypes} objects.
 }
 \details{
 Indexing a \code{gtypes} object with integers, characters, or logicals with 
-  the \code{[} operator follows the same rules as normal R indexing. The 
-  order that individuals, loci, and strata are chosen in follow the order 
+  the \code{[} operator follows the same rules as normal indexing in R. The 
+  order that individuals, loci, and strata are chosen in the order 
   returned by \code{indNames}, \code{locNames}, and \code{strataNames} 
   respectively. If unstratified samples are present, they can be selected as
   a group either by including \code{NA} in the character or numeric vector of the 
@@ -172,6 +173,7 @@ msats.g
 
 
 #--- a sequence example
+library(ape)
 data(woodmouse)
 genes <- list(gene1=woodmouse[,1:500], gene2=woodmouse[,501:965])
 x <- new("multidna", genes)
@@ -184,6 +186,7 @@ multi.seqs <- sequences(wood.g)
 class(multi.seqs) # "multidna"
 
 # get a list of DNAbin objects
+library(apex)
 dnabin.list <- getSequences(multi.seqs)
 class(dnabin.list) # "list"
 
@@ -202,4 +205,3 @@ class(gene1.dnabin) # "DNAbin"
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
 }
-

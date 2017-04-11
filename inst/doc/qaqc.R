@@ -13,6 +13,7 @@ head(smry)
 dupGenotypes(msats, num.shared = 0.66)
 
 ## ------------------------------------------------------------------------
+library(ape)
 data(dolph.seqs)
 seq.smry <- summarizeSeqs(as.DNAbin(dolph.seqs))
 head(seq.smry)
@@ -31,5 +32,5 @@ lowFreqSubs(as.DNAbin(dolph.seqs), min.freq = 2)
 
 ## ------------------------------------------------------------------------
 data(dolph.haps)
-haplotypeLikelihoods(as.DNAbin(dolph.haps))
+sequenceLikelihoods(as.DNAbin(dolph.haps))
 

@@ -1,26 +1,24 @@
-#' @name gtypes.accessors
 #' @title \code{gtypes} Accessors
 #' @description Accessors for slots in \linkS4class{gtypes} objects.
 #' 
 #' @param x a \linkS4class{gtypes} object.
 #' @param seqName the name (or number) of a set of sequences from the 
 #'   \code{@@sequences} slot to return.
-#' @param ids vector of individual ids.
-#' @param loci vector of loci.
 #' @param as.haplotypes return sequences as haplotypes? If \code{TRUE}, contents of 
-#'   \code{@@sequences} slot are returned. If \code{FALSE}, one sequence per individual 
-#'   is returned.
+#'   \code{@@sequences} slot are returned. If \code{FALSE}, one sequence per 
+#'   individual is returned.
 #' @param i,j,k subsetting slots for individuals (\code{i}), loci (\code{j}),
 #'   or strata (\code{k}). See Details for more information.
-#' @param quiet suppress warnings about unmatched requested individuals, loci, or strata?
+#' @param quiet suppress warnings about unmatched requested individuals, loci, 
+#'   or strata?
 #' @param drop if \code{TRUE} the return object will have unused sequences removed.
 #' @param ... other arguments passed from generics (ignored).
 #' @param value value being assigned by accessor.
 #' 
 #' @details 
 #' Indexing a \code{gtypes} object with integers, characters, or logicals with 
-#'   the \code{[} operator follows the same rules as normal R indexing. The 
-#'   order that individuals, loci, and strata are chosen in follow the order 
+#'   the \code{[} operator follows the same rules as normal indexing in R. The 
+#'   order that individuals, loci, and strata are chosen in the order 
 #'   returned by \code{indNames}, \code{locNames}, and \code{strataNames} 
 #'   respectively. If unstratified samples are present, they can be selected as
 #'   a group either by including \code{NA} in the character or numeric vector of the 
@@ -39,10 +37,9 @@
 #'   \item{other}{contents of \code{@@other} slot}
 #'   \item{strata}{return or modify the current stratification}
 #'   \item{schemes}{return or modify the current stratification schemes}
-#'   \item{loci}{return a data.frame of the alleles for the specified ids and loci}
 #'   \item{alleleNames}{return a list of alleles at each locus}
-#'   \item{sequences}{return the \linkS4class{multidna} object in 
-#'     the \code{@@sequences} slot. See \code{\link[apex]{getSequences}} to 
+#'   \item{sequences}{return the \linkS4class{multidna} object in the 
+#'     \code{@@sequences} slot. See \code{\link[apex]{getSequences}} to 
 #'     extract individual genes or sequences from this object}
 #'   \item{description}{return the object's description}
 #' }
@@ -65,6 +62,7 @@
 #' 
 #' 
 #' #--- a sequence example
+#' library(ape)
 #' data(woodmouse)
 #' genes <- list(gene1=woodmouse[,1:500], gene2=woodmouse[,501:965])
 #' x <- new("multidna", genes)
@@ -77,6 +75,7 @@
 #' class(multi.seqs) # "multidna"
 #'
 #' # get a list of DNAbin objects
+#' library(apex)
 #' dnabin.list <- getSequences(multi.seqs)
 #' class(dnabin.list) # "list"
 #' 
@@ -91,31 +90,28 @@
 #' gene1.dnabin <- getSequences(sequences(gene1))
 #' class(gene1.dnabin) # "DNAbin"
 #' 
+#' @name gtypes.accessors
 #' @aliases accessors
-#' @importFrom adegenet nInd
-#' @importFrom methods setGeneric setMethod
+#' @importFrom methods setGeneric setMethod validObject new
 #' 
+NULL
+
 
 #' @rdname gtypes.accessors
-#' 
-setGeneric("nInd")
-
-#' @rdname gtypes.accessors
-#' @aliases nInd,gtypes-method nInd
+#' @aliases nInd
 #' @export
 #' 
-setMethod("nInd", "gtypes", function(x, ...) nrow(x@loci) / x@ploidy)
+setMethod("nInd", "gtypes", function(x, ...) {
+  ids <- NULL # For CRAN CHECK
+  x@data[, uniqueN(ids)]
+})
 
-
-#' @rdname gtypes.accessors
-#' 
-setGeneric("nLoc")
 
 #' @rdname gtypes.accessors
 #' @aliases nLoc
 #' @export
 #' 
-setMethod("nLoc", "gtypes", function(x, ...) ncol(x@loci))
+setMethod("nLoc", "gtypes", function(x, ...) ncol(x@data) - 2)
 
 
 #' @rdname gtypes.accessors
@@ -127,7 +123,7 @@ setGeneric("nStrata", function(x, ...) standardGeneric("nStrata"))
 #' @aliases nStrata
 #' @export
 #' 
-setMethod("nStrata", "gtypes", function(x, ...) nlevels(x@strata))
+setMethod("nStrata", "gtypes", function(x, ...) x@data[, uniqueN(strata)])
 
 
 #' @rdname gtypes.accessors
@@ -135,8 +131,8 @@ setMethod("nStrata", "gtypes", function(x, ...) nlevels(x@strata))
 #' @export
 #' 
 setMethod("indNames", "gtypes", function(x, ...) {
-  ids <- rownames(x@loci)[1:(nrow(x@loci) / x@ploidy)]
-  unique(substr(ids, 1, nchar(ids) - 2))
+  ids <- NULL # For CRAN CHECK
+  x@data[, unique(ids)]
 })
 
 
@@ -144,7 +140,9 @@ setMethod("indNames", "gtypes", function(x, ...) {
 #' @aliases locNames
 #' @export
 #' 
-setMethod("locNames", "gtypes", function(x, ...) colnames(x@loci))
+setMethod("locNames", "gtypes", function(x, ...) {
+  setdiff(colnames(x@data), c("ids", "strata"))
+})
 
 
 #' @rdname gtypes.accessors
@@ -156,7 +154,9 @@ setGeneric("strataNames", function(x, ...) standardGeneric("strataNames"))
 #' @aliases strataNames
 #' @export
 #' 
-setMethod("strataNames", "gtypes", function(x, ...) levels(x@strata))
+setMethod("strataNames", "gtypes", function(x, ...) {
+  x@data[, sort(as.character(unique(strata)))]
+})
 
 
 #' @rdname gtypes.accessors
@@ -172,11 +172,19 @@ setMethod("ploidy", "gtypes", function(x, ...) x@ploidy)
 #' 
 setMethod("other", "gtypes", function(x, ...) x@other)
 
+
 #' @rdname gtypes.accessors
 #' @aliases strata
 #' @export
 #' 
-setMethod("strata", "gtypes", function(x) x@strata)
+setMethod("strata", "gtypes", function(x) {
+  ids <- strata <- NULL # For CRAN CHECK
+  mat <- as.matrix(x@data[, list(ids, strata)])
+  mat <- mat[!duplicated(mat[, "ids"]), ]
+  vec <- mat[, "strata"]
+  names(vec) <- mat[, "ids"]
+  vec
+})
 
 
 #' @rdname gtypes.accessors
@@ -186,13 +194,16 @@ setGeneric("strata<-", function(x, value) standardGeneric("strata<-"))
 
 #' @rdname gtypes.accessors
 #' @aliases strata
-#' @importFrom methods validObject
 #' @export
 #' 
 setMethod("strata<-", "gtypes", function(x, value) {
-  strata <- factor(rep(value, length.out = nInd(x)))
-  names(strata) <- indNames(x)
-  x@strata <- droplevels(strata)
+  ids <- strata <- NULL # For CRAN CHECK
+  value <- if(is.null(names(value))) {
+    rep(value, length.out = nrow(x@data))
+  } else {
+    value[x@data[, ids]]
+  }
+  x@data[, strata := value]
   validObject(x)
   x
 })
@@ -217,7 +228,6 @@ setGeneric("schemes<-", function(x, value) standardGeneric("schemes<-"))
 
 #' @rdname gtypes.accessors
 #' @aliases schemes
-#' @importFrom methods validObject
 #' @export
 #' 
 setMethod("schemes<-", "gtypes", function(x, value) {
@@ -230,36 +240,18 @@ setMethod("schemes<-", "gtypes", function(x, value) {
 #' @rdname gtypes.accessors
 #' @export
 #' 
-setGeneric("loci", function(x, ...) standardGeneric("loci"))
-
-#' @rdname gtypes.accessors
-#' @aliases loci
-#' @export
-#' 
-setMethod("loci", "gtypes", function(x, ids = NULL, loci = NULL) {
-  x.ids <- indNames(x)
-  if(is.null(ids)) ids <- x.ids
-  if(is.null(loci)) loci <- locNames(x)
-  if(!all(ids %in% x.ids)) stop("some 'ids' not found in 'x'")
-  if(!all(loci %in% locNames(x))) stop("some 'loci' not found in 'x'")
-  x@loci[idRows(x, ids = ids), loci, drop = FALSE]
-})
-
-
-#' @rdname gtypes.accessors
-#' @export
-#' 
 setGeneric("alleleNames", function(x, ...) standardGeneric("alleleNames"))
 
 #' @rdname gtypes.accessors
-#' @aliases loci
+#' @aliases alleleNames
 #' @export
 #' 
 setMethod("alleleNames", "gtypes", function(x) {
-  sapply(x@loci, function(l) {
-    as.character(sort(unique(l[!is.na(l)])))
+  sapply(x@data[, locNames(x), with = FALSE], function(x) {
+    as.vector(na.omit(unique(as.character(x))))
   }, simplify = FALSE)
 })
+
 
 #' @rdname gtypes.accessors
 #' @export
@@ -275,14 +267,16 @@ setMethod("sequences", "gtypes", function(x, seqName = NULL, as.haplotypes = TRU
   dna <- getSequences(x@sequences, simplify = FALSE)
   if(!as.haplotypes) {
     dna <- lapply(locNames(x), function(l) {
-      haps <- as.character(loci(x)[, l])
+      haps <- as.array(x, loci = l)
       ind.seqs <- dna[[l]][haps]
       names(ind.seqs) <- indNames(x)
       ind.seqs
     })
   }
   if(!is.null(seqName)) dna <- dna[seqName]
-  as.multidna(dna)
+  dna <- as.multidna(dna)
+  setLocusNames(dna) <- locNames(x)
+  dna
 })
 
 
@@ -299,8 +293,23 @@ setMethod("description", "gtypes", function(x, ...) x@description)
 
 
 #' @rdname gtypes.accessors
+#' @export
+#' 
+setGeneric("description<-", function(x, value) standardGeneric("description<-"))
+
+#' @rdname gtypes.accessors
+#' @aliases description
+#' @export
+#' 
+setMethod("description<-", "gtypes", function(x, value) {
+  x@description <- value
+  validObject(x)
+  x
+})
+
+
+#' @rdname gtypes.accessors
 #' @aliases index subset
-#' @importFrom methods new
 #' @export
 #' 
 setMethod("[", 
@@ -316,7 +325,7 @@ setMethod("[",
     missing.ids <- setdiff(i, ids)
     if(length(missing.ids) > 0) {
       missing.ids <- paste(missing.ids, collapse = ", ")
-      warning(paste("the following ids cannot be found:", missing.ids))
+      warning("the following ids cannot be found: ", missing.ids)
     }
     intersect(i, ids)
   } else ids[i]
@@ -330,7 +339,7 @@ setMethod("[",
     missing.locs <- setdiff(j, locs)
     if(length(missing.locs) > 0 & !quiet) {
       missing.locs <- paste(missing.locs, collapse = ", ")
-      warning(paste("the following loci cannot be found:", missing.locs))
+      warning("the following loci cannot be found: ", missing.locs)
     }
     intersect(j, locs)
   } else locs[j]
@@ -338,57 +347,45 @@ setMethod("[",
   # check strata (k) 
   if(missing(k)) k <- TRUE
   if(is.factor(k)) k <- as.character(k)
-  st <- strata(x)
-  k.i <- if(is.character(k)) {
+  st <- strataNames(x)
+  k <- if(is.character(k)) {
     k <- unique(k)
     missing.strata <- setdiff(k, st)
     if(length(missing.strata) > 0 & !quiet) {
       missing.strata <- paste(missing.strata, collapse = ", ")
-      warning(paste("the following strata cannot be found:", missing.strata))
+      warning("the following strata cannot be found: ", missing.strata)
     }
-    st.i <- names(st)[st %in% k]
-    if(any(is.na(k))) st.i <- c(st.i, names(st)[is.na(st)])
-    st.i
+    intersect(k, st)
   } else {
-    names(st)[st %in% strataNames(x)[k]]
+    st[k]
   }
-  
-  # check ids in selected strata
-  missing.ids <- setdiff(i, k.i)
-  if(length(missing.ids) > 0 & !quiet) {
-    missing.ids <- paste(missing.ids, collapse = ", ")
-    warning(paste("the following ids are not in the selected strata:", missing.ids))
-  }
-  i <- intersect(i, k.i)
-  
+
   if(length(i) == 0) stop("no samples selected")
   if(length(j) == 0) stop("no loci selected")
   if(length(k) == 0) stop("no strata selected")
   
-  i <- i[order(match(i, ids))]
-  x@loci <- x@loci[idRows(x, i), j, drop = FALSE]
-  x@loci <- droplevels(x@loci)
-  x@strata <- droplevels(x@strata[i])
+  x@data <- x@data[ids %in% i & strata %in% k, c("ids", "strata", j), with = FALSE, nomatch = 0]
+  if(nrow(x@data) == 0) stop("none of the specified ids were found in the specified strata.")
+  
+  # check ids in selected strata
+  missing.ids <- setdiff(i, x@data[, unique(ids)])
+  if(length(missing.ids) > 0 & !quiet) {
+    missing.ids <- paste(missing.ids, collapse = ", ")
+    warning("the following ids are not in the selected strata: ", missing.ids)
+  }
+  
+  # filter sequences
   if(!is.null(x@sequences)) {
-    j.seqs <- getSequences(x@sequences, loci = j, 
-                           simplify = FALSE, exclude.gap.only = FALSE)
+    j.seqs <- getSequences(
+      x@sequences, loci = j, simplify = FALSE, 
+      exclude.gap.only = FALSE
+    )
     x@sequences <- new("multidna", j.seqs)
   }
   
   # Check for samples missing data for all loci
-  x.mat <- as.matrix(x)
-  not.missing.all <- apply(x.mat, 1, function(y) !all(is.na(y)))
-  to.keep <- names(which(not.missing.all))
-  to.remove <- names(which(!not.missing.all))
-  if(length(to.remove)) {
-    warning("The following samples are missing data for all loci and have been removed: ", 
-            paste(to.remove, collapse = ", "))
-  }
-  x@loci <- x@loci[idRows(x, to.keep), , drop = FALSE]
-  x@loci <- droplevels(x@loci)
-  x@strata <- droplevels(x@strata[to.keep])
+  x <- .removeIdsMissingAllLoci(x)
   
   if(drop) x <- removeSequences(x)
-
   return(x)
 })

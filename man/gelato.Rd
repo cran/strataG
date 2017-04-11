@@ -7,7 +7,7 @@
 \usage{
 gelato(g, unknown.strata, nrep = 1000, min.sample.size = 5)
 
-gelatoPlot(gelato.result, unknown, main = NULL)
+gelatoPlot(gelato.result, unknown = NULL, main = NULL)
 }
 \arguments{
 \item{g}{a \linkS4class{gtypes} object.}
@@ -24,8 +24,8 @@ is not done.}
 
 \item{gelato.result}{the result of a call to \code{gelato}.}
 
-\item{unknown}{the name of an unknown stratum in the \code{x$likelihoods} 
-element.}
+\item{unknown}{the names of the unknown strata in the \code{x$likelihoods} 
+element to create plots. If \code{NULL} one plot for each stratum is created.}
 
 \item{main}{main label for top of plot.}
 }
@@ -44,19 +44,18 @@ Run a GELATo test to evaluate assignment likelihoods of
 data(msats.g)
 
 # Run GELATo analysis
-gelato.fine <- gelato(msats.g, unk = "Offshore.South", nrep = 10)
+gelato.fine <- gelato(msats.g, unk = "Offshore.South", nrep = 20)
 gelato.fine
 
 # Plot results
 gelatoPlot(gelato.fine, "Offshore.South")
 
 }
-\author{
-Eric Archer \email{eric.archer@noaa.gov}
-}
 \references{
 O'Corry-Crowe, G., W. Lucey, F.I. Archer, and B. Mahoney. 2015. 
   The genetic ecology and population origins of the beluga whales of 
   Yakutat Bay. Marine Fisheries Review.
 }
-
+\author{
+Eric Archer \email{eric.archer@noaa.gov}
+}

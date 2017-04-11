@@ -98,3 +98,47 @@ NULL
   colnames(strata.pairs) <- c("strata.1", "strata.2")
   as.data.frame(strata.pairs, stringsAsFactors = FALSE)
 }
+
+
+#' @rdname strataG-internal
+#' @param g a \linkS4class{gtypes} object.
+#' @keywords internal
+#' 
+.removeIdsMissingAllLoci <- function(g) {
+  ids <- NULL # For CRAN CHECK
+  is.missing.all <- g@data[, list(missing = all(is.na(.SD))), .SDcols = !c("ids", "strata"), by = "ids"]
+  to.remove <- is.missing.all[(missing)]$ids
+  if(length(to.remove) > 0) {
+    warning(
+      "The following samples are missing data for all loci and have been removed: ", 
+      paste(to.remove, collapse = ", ")
+    )
+    g@data <- g@data[!ids %in% to.remove]
+  }
+  g@data <- droplevels(g@data)
+  g
+}
+
+
+#' @rdname strataG-internal
+#' @param fun a function that takes one locus column at a time.
+#' @param g a \linkS4class{gtypes} object.
+#' @keywords internal
+#' 
+.applyPerLocus <- function(fun, g, ...) {
+  g@data[, apply(.SD, 2, fun, ...), .SDcols = !c("ids", "strata")]
+}
+
+
+#' @rdname strataG-internal
+#' @param g a \linkS4class{gtypes} object.
+#' @keywords internal
+#' 
+.numericLoci <- function(g, min.val = 0) {
+  ids <- NULL # For CRAN CHECK
+  .convToNum <- function(x) min.val + (as.numeric(droplevels(x)) - 1)
+  list(
+    ids = g@data[, unique(ids)],
+    loci = as.matrix(g@data[, sapply(.SD, .convToNum), .SDcols = !c("ids", "strata")])
+  )
+}

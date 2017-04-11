@@ -2,13 +2,13 @@
 % Please edit documentation in R/as.matrix.gtypes.R
 \docType{methods}
 \name{as.matrix,gtypes-method}
-\alias{as.matrix}
 \alias{as.matrix,gtypes-method}
 \alias{as.matrix.gtypes}
+\alias{as.matrix}
 \title{Convert \code{gtypes} To \code{matrix}}
 \usage{
 \S4method{as.matrix}{gtypes}(x, one.col = FALSE, sep = "/", ids = TRUE,
-  strata = TRUE, ...)
+  strata = TRUE, sort.alleles = TRUE, ...)
 }
 \arguments{
 \item{x}{a \linkS4class{gtypes} object.}
@@ -23,7 +23,10 @@ locus.}
 
 \item{strata}{logical. include a column for current statification (\code{strata})?}
 
-\item{...}{additional arguments ot be passed to or from methods.}
+\item{sort.alleles}{logical. for non-haploid objects, should alleles be sorted 
+in genotypes or left as in original order? (only takes affect if \code{one.col = TRUE})}
+
+\item{...}{additional arguments to be passed to or from methods.}
 }
 \value{
 A \code{matrix} with one row per sample.
@@ -47,10 +50,9 @@ genotypes.mat <- as.matrix(msats.g, one.col = TRUE, ids = FALSE, strata = FALSE)
 head(genotypes.mat)
 
 }
+\seealso{
+\link{df2gtypes} \link[strataG]{as.data.frame} \link[strataG]{as.array}
+}
 \author{
 Eric Archer \email{eric.archer@noa.gov}
 }
-\seealso{
-\link{df2gtypes} \link[strataG]{as.data.frame}
-}
-

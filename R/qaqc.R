@@ -3,7 +3,7 @@
 #'   homozygosity by individual and locus, and looks for duplicate genotypes 
 #'   (see \code{\link{dupGenotypes}}). For sequence data, identifies low 
 #'   frequency substitutions (see \code{\link{lowFreqSubs}}), and computes 
-#'   haplotype likelihoods (see \code{\link{haplotypeLikelihoods}}).
+#'   sequence likelihoods (see \code{\link{sequenceLikelihoods}}).
 #' 
 #' @param g a \linkS4class{gtypes} object.
 #' @param label optional label for output folder and prefix for files.
@@ -11,7 +11,7 @@
 #' 
 #' @return Files are written for by-sample and by-locus summaries, and duplicate 
 #'   genotypes if any are found. If sequences are present, files are written 
-#'   identifying low frequency substitutions and haplotype likelihoods.\cr
+#'   identifying low frequency substitutions and sequence likelihoods.\cr
 #'   The return value is a list with the following elements:
 #'   
 #' \describe{
@@ -24,28 +24,17 @@
 #' 
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
+#' @seealso \code{\link{summarizeSamples}}, \code{\link{summarizeLoci}}, 
+#'   \code{\link{dupGenotypes}}, \code{\link{lowFreqSubs}}, 
+#'   \code{\link{sequenceLikelihoods}}
+#' 
 #' @importFrom utils write.csv
 #' @export
 #' 
 qaqc <- function(g, label = NULL, ...) {
   cat("\n")
   cat(format(Sys.time()), ": Individual summaries\n")
-  num.loc <- nLoc(g)
-  by.sample <- do.call(rbind, lapply(indNames(g), function(id) {
-    smry <- sapply(locNames(g), function(loc) {
-      gt <- loci(g, id, loc)
-      missing <- any(is.na(gt))
-      hmzgs <- if(missing) NA else length(unique(unlist(gt))) == 1
-      c(missing = missing, hmzgs = hmzgs)
-    })
-    
-    missing <- sum(smry["missing", ], na.rm = TRUE)
-    data.frame(sample = id, 
-      num.loci.missing.genotypes = missing,
-      pct.loci.missing.genotypes = missing / num.loc,
-      pct.loci.homozygous = mean(smry["hmzgs", ], na.rm = TRUE)
-    )
-  }))
+  by.sample <- summarizeSamples(g)
   
   cat(format(Sys.time()), ": Locus summaries\n")
   by.locus <- summarizeLoci(g, TRUE)
@@ -61,7 +50,7 @@ qaqc <- function(g, label = NULL, ...) {
       x.seqs <- getSequences(sequences(g), loci = x, simplify = TRUE)
       list(
         low.freq.subs = lowFreqSubs(x.seqs, ...),
-        hap.likelihoods = haplotypeLikelihoods(x.seqs, ...)
+        seq.likelihoods = sequenceLikelihoods(x.seqs, ...)
       )
     }, simplify = FALSE)
   } else NULL
@@ -90,9 +79,8 @@ qaqc <- function(g, label = NULL, ...) {
     for(x in names(by.seq)) {
       fname <- paste(label, "low.freq.subs", x, "csv", sep = ".")
       write.csv(by.seq[[x]]$low.freq.subs, file = fname, row.names = FALSE)
-      fname <- paste(label, "haplotype.likelihoods", x, "csv", sep = ".")
-      hl <- cbind(delta.logLik = by.seq[[x]]$hap.likelihoods)
-      write.csv(hl, file = fname)
+      fname <- paste(label, "sequence.likelihoods", x, "csv", sep = ".")
+      write.csv(by.seq[[x]]$seq.likelihoods, file = fname, row.names = FALSE)
     }
   }
   

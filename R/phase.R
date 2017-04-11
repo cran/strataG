@@ -144,6 +144,7 @@ phase <- function(g, loci, positions = NULL, type = NULL,
     }
     
     # Read output
+    opts <- options(warn = -1)
     gtype.probs <- phaseReadPair(paste(out.file, "_pairs", sep = ""))
     if(is.null(gtype.probs)) {
       alleles <- rep(NA, nrow(g$genotypes))
@@ -155,6 +156,7 @@ phase <- function(g, loci, positions = NULL, type = NULL,
     alleles <- paste(new.locus.name, 1:2, sep = ".")
     colnames(gtype.probs)[1:3] <- c("id", alleles) 
     rownames(gtype.probs) <- NULL
+    options(opts)
     
     locus.result <- list(
       locus.name = new.locus.name, gtype.probs = gtype.probs, 
@@ -253,7 +255,7 @@ phaseWrite <- function(g, loci, positions = NULL,
     paste(type, collapse = ""), ""
   ), file = in.file)
   
-  g.mat <- as.matrix(sub.g)
+  g.mat <- as.matrix(sub.g, ids = FALSE, strata = FALSE)
   g.mat[is.na(g.mat)] <- "?"
   for(i in 1:nrow(g.mat)) {
     write(c(
@@ -284,7 +286,7 @@ phasePosterior <- function(ph.res, keep.missing = TRUE) {
       if(keep.missing) {
         for(i in 1:nrow(post.df)) {
           ids <- which(indNames(ph.res$orig.gtypes) == post.df[i, 1])
-          if(any(is.na(loci(ph.res$orig.gtypes[ids, , ])))) {
+          if(any(is.na(as.array(ph.res$orig.gtypes, ids = ids)))) {
             post.df[i, 2:3] <- NA
           }
         }
@@ -321,7 +323,7 @@ phaseFilter <- function(ph.res, thresh = 0.5, keep.missing = TRUE) {
     if(keep.missing) {
       for(i in 1:nrow(locus.filtered)) {
         ids <- which(indNames(x$orig.gtypes) == locus.filtered[i, 1])
-        if(any(is.na(loci(x$orig.gtypes[ids, , ])))) {
+        if(any(is.na(as.array(x$orig.gtypes, ids = ids)))) {
           locus.filtered[i, 2:3] <- NA
         }
       }
@@ -330,9 +332,11 @@ phaseFilter <- function(ph.res, thresh = 0.5, keep.missing = TRUE) {
     locus.filtered
   })
   
-  id <- filtered[[1]][, 1]
-  filtered <- as.matrix(do.call(cbind, lapply(filtered, function(x) x[, 2:3])))
-  rownames(filtered) <- id
+  ids <- data.frame(id = sort(unique(unlist(lapply(filtered, function(x) x$id)))))
+  filtered <- as.matrix(do.call(cbind, lapply(filtered, function(x) {
+    merge(ids, x, by = "id", all.x = TRUE)[, 2:3]
+  })))
+  rownames(filtered) <- ids$id
   colnames(filtered) <- paste(rep(names(ph.res), each = 2), ".", 1:2, sep = "")
   filtered
 }

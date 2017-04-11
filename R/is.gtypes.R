@@ -14,6 +14,9 @@
 #' data(dolph.msats)
 #' is.gtypes(dolph.msats) # FALSE
 #' 
+#' @importFrom methods is
 #' @export
 #' 
-is.gtypes <- function(x) inherits(x, "gtypes")
+is.gtypes <- function(x) {
+  if(is(x, "gtypes")) validObject(x) else FALSE
+}

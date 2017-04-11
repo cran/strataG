@@ -15,6 +15,9 @@
 #' @param delete.files logical. Delete files when done?
 #' @param exec name of fastsimcoal executable.
 #' @param num.cores number of cores to use.
+#' @param label.haplotypes if DNA sequences are being simulated, should resulting
+#'   sequences be stored as haplotypes (default = \code{TRUE}), or left as 
+#'   individual sequences (\code{FALSE})?
 #' @param file filename to write to.
 #' 
 #' @note fastsimcoal is not included with \code{strataG} and must be downloaded 
@@ -69,6 +72,7 @@ fscWrite <- function(pop.info, locus.params, mig.rates = NULL, hist.ev = NULL, l
   pop.info[, c("pop.size", "sample.size")] <- pop.info[, c("pop.size", "sample.size")] * ploidy
   
   if(is.null(label)) label <- "fastsimcoal.output"
+  label <- make.names(label)
   file <- paste(label, ".par", sep = "")
   mig.rates <- if(!is.null(mig.rates)) if(is.list(mig.rates)) mig.rates else list(mig.rates)
   hist.ev <- if(is.list(hist.ev)) do.call(rbind, hist.ev) else rbind(hist.ev)
@@ -84,14 +88,14 @@ fscWrite <- function(pop.info, locus.params, mig.rates = NULL, hist.ev = NULL, l
   for(i in 1:nrow(pop.info)) write(pop.info[i, c("sample.size", "sample.times")], file, append = T)
   
   write("//Growth rates", file, append = T)
-  for(i in 1:nrow(pop.info)) write(pop.info[i, "growth.rate"], file, append = T)
+  for(i in 1:nrow(pop.info)) write(as.character(pop.info[i, "growth.rate"]), file, append = T)
   
   write("//Number of migration matrices", file, append = T)
   write(length(mig.rates), file, append = T)
   if(!is.null(mig.rates)) {
     for(i in 1:length(mig.rates)) {
       write("//migration matrix", file, append = T)
-      for(r in 1:nrow(mig.rates[[i]])) write(mig.rates[[i]][r, ], file, append = T)
+      for(r in 1:nrow(mig.rates[[i]])) write(paste(as.character(mig.rates[[i]][r, ]), collapse = " "), file, append = T)
     }
   }
   
@@ -99,7 +103,7 @@ fscWrite <- function(pop.info, locus.params, mig.rates = NULL, hist.ev = NULL, l
   write(ifelse(is.null(hist.ev), 0, nrow(hist.ev)), file, append = T)
   if(!is.null(hist.ev)) {
     for(i in 1:nrow(hist.ev)) {
-      write(paste(hist.ev[i, ], collapse = " "), file, append = T)
+      write(paste(as.character(hist.ev[i, ]), collapse = " "), file, append = T)
     }
   }
   
@@ -116,7 +120,7 @@ fscWrite <- function(pop.info, locus.params, mig.rates = NULL, hist.ev = NULL, l
     write(nrow(block), file, append = T)
     write("//Per block: data type, num loci, rec. rate and mut rate + optional parameters", file, append = T)
     for(i in 1:nrow(block)) {
-      line <- paste(block[i, ], collapse = " ")
+      line <- paste(as.character(block[i, ]), collapse = " ")
       write(gsub(" NA", "", line), file, append = T)
     }
   }
@@ -129,8 +133,8 @@ fscWrite <- function(pop.info, locus.params, mig.rates = NULL, hist.ev = NULL, l
 #' @rdname fastsimcoal
 #' @export
 #' 
-fscRead <- function(file, locus.params) {
-  formatGenotypes <- function(x, ploidy) {
+fscRead <- function(file, locus.params, label.haplotypes = TRUE) {
+  .formatGenotypes <- function(x, ploidy) {
     # reformat matrix to have alleles side-by-side
     nloci <- ncol(x) - 2
     loc.end <- seq(ploidy, nrow(x), by = ploidy)
@@ -148,7 +152,7 @@ fscRead <- function(file, locus.params) {
     gen.data
   }
   
-  formatDNA <- function(dna.seq, pop, locus.params) {
+  .formatDNA <- function(dna.seq, pop, locus.params) {
     # create multidna object splitting chromosomes into loci
     num.chrom <- attr(locus.params, "num.chrom")
     chrom.pos <- if(is.null(num.chrom)) {
@@ -174,12 +178,13 @@ fscRead <- function(file, locus.params) {
   pos <- cbind(start, end)
   
   # compile data into 3 column character matrix
-  data.mat <- do.call(rbind, lapply(1:nrow(pos), function(i) {
+  .compileMatrix <- function(i, pos) {
     f.line <- f[pos[i, 1]:pos[i, 2]]
     f.line <- gsub("[[:space:]]+", "--", f.line)
     result <- do.call(rbind, strsplit(f.line, "--"))[, -2]
     cbind(rep(paste("Sample", i), nrow(result)), result)
-  }))
+  }
+  data.mat <- do.call(rbind, lapply(1:nrow(pos), .compileMatrix, pos = pos))
   
   ploidy <- attr(locus.params, "ploidy")
   
@@ -191,16 +196,16 @@ fscRead <- function(file, locus.params) {
     DNA = { # diploid SNPs
       dna.seq <- do.call(rbind, strsplit(data.mat[, 3], ""))
       if(attr(locus.params, "ploidy") == 2) {
-        gen.data <- formatGenotypes(cbind(data.mat[, 1:2], dna.seq), ploidy)
+        gen.data <- .formatGenotypes(cbind(data.mat[, 1:2], dna.seq), ploidy)
         df2gtypes(gen.data, ploidy, description = file)
       } else { # haploid DNA sequences
-        dna.seq <- formatDNA(dna.seq, data.mat[, 2], locus.params)
+        dna.seq <- .formatDNA(dna.seq, data.mat[, 2], locus.params)
         g <- sequence2gtypes(dna.seq, strata = data.mat[, 1], description = file)
-        labelHaplotypes(g)$gtype
+        if(label.haplotypes) labelHaplotypes(g)$gtype else g
       }
     },
     MICROSAT = {
-      gen.data <- formatGenotypes(data.mat, ploidy)
+      gen.data <- .formatGenotypes(data.mat, ploidy)
       df2gtypes(gen.data, ploidy, description = file)
     },
     NULL
@@ -213,22 +218,26 @@ fscRead <- function(file, locus.params) {
 #' 
 fastsimcoal <- function(pop.info, locus.params, mig.rates = NULL, 
                         hist.ev = NULL, label = NULL, quiet = TRUE, 
-                        delete.files = TRUE, exec = "fsc252", num.cores = NULL) {
+                        delete.files = TRUE, exec = "fsc252", num.cores = NULL,
+                        label.haplotypes = TRUE) {
   
   if(is.null(label)) label <- "fsc.run"
+  label <- make.names(label)
   if(file.exists(label)) for(f in dir(label, full.names = T)) file.remove(f)
   
   # Write fastsimcoal input file
+  if(!quiet) cat("fastsimcoal: writing input file\n")
   infile <- fscWrite(
     pop.info = pop.info, locus.params = locus.params,
     mig.rates = mig.rates, hist.ev = hist.ev, label = label
   )
   
   # Run fastsimcoal
+  if(!quiet) cat("fastsimcoal: running\n")
   cores.spec <- if(!is.null(num.cores)) {
     num.cores <- max(1, num.cores)
     num.cores <- min(num.cores, min(detectCores(), 12))
-    paste(c("-c", "-B"), num.cores, collapse = " ")
+    if(num.cores == 1) "" else paste(c("-c", "-B"), num.cores, collapse = " ")
   } else ""
   cmd.line <- paste(
     exec, "-i", infile, "-n 1",
@@ -250,12 +259,15 @@ fastsimcoal <- function(pop.info, locus.params, mig.rates = NULL,
   # Read and parse output
   arp.file <- file.path(label, paste(label, "_1_1.arp", sep = ""))
   if(!file.exists(arp.file)) stop("fastsimcoal did not generate output")
-  g <- fscRead(arp.file, locus.params)
+  if(!quiet) cat("fastsimcoal: parsing output to gtypes\n")
+  g <- fscRead(arp.file, locus.params, label.haplotypes)
   
   # Cleanup
   if(delete.files) {
+    if(!quiet) cat("fastsimcoal: removing output files\n")
     unlink(label, recursive = TRUE, force = TRUE)
     file.remove(infile)
+    file.remove("seed.txt")
   }
   
   return(g)

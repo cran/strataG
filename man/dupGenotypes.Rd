@@ -15,13 +15,14 @@ individuals must share to be considered duplicate individuals.}
 \item{num.cores}{number of CPU cores to use.}
 }
 \value{
-a data.frame with the following columns:
+if no duplicates are present, the result is \code{NULL}, otherwise
+  a data.frame with the following columns is returned:
 \tabular{ll}{
   \code{ids.1, ids.2} \tab sample ids.\cr
-  \code{strata1, strata2} \tab sample strata.\cr
+  \code{strata.1, strata.2} \tab sample stratification.\cr
   \code{num.loci.genotyped} \tab number of loci genotyped for both 
     samples.\cr
-  \code{num.loci.shared} \tab number of loci shared between both samples.\cr
+  \code{num.loci.shared} \tab number of loci shared (all alleles the same) between both samples.\cr
   \code{prop.loci.shared} \tab proportion of loci genotyped for both samples 
     that are shared.\cr
   \code{mismatch.loci} \tab loci where the two samples do not match.\cr
@@ -41,4 +42,3 @@ dupes
 \author{
 Eric Archer \email{eric.archer@noaa.gov}
 }
-

@@ -14,12 +14,22 @@ object with sequences.}
 Calculate Fu's Fs for a set of sequences to test 
   for selection.
 }
-\author{
-Eric Archer \email{eric.archer@noaa.gov}
+\note{
+Currently, this function is limited to calculating Fs for fewer than 
+  approximately 172 sequences due to numerical overflow issues. \code{NaN} will 
+  be returned for larger data sets.
+}
+\examples{
+data(dolph.seqs)
+
+fusFs(dolph.seqs)
+
 }
 \references{
 Fu, Y-X. 1997. Statistical tests of neutrality of mutations 
   against population growth, hitchiking and background selection. 
   Genetics 147:915-925.
 }
-
+\author{
+Eric Archer \email{eric.archer@noaa.gov}
+}

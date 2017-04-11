@@ -27,25 +27,22 @@
 #' @param ... other parameters to be passed to population 
 #'   differentiation functions.
 #' 
-#' @return
-#' \describe{
-#'  \item{overall}{a list containing:
-#'    \describe{
-#'      \item{\code{strata.freq}}{a vector of the sample sizes for each stratum}
-#'      \item{\code{result}}{a matrix with the statistic estimate and p-value 
-#'        for each statistic}
-#'      \item{\code{null.dist}}{a matrix with the null distributions for 
-#'        each statistic}
-#'    }}
-#'  \item{pairwise}{a list containing:
-#'    \describe{
-#'      \item{\code{result}}{a data.frame with the result of each pairwise 
-#'        comparison on each row}
-#'      \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic. 
-#'        Values in lower left are the statistic estimate, and upper right are p-values}
-#'      \item{\code{null.dist}}{a matrix with the null distributions for 
-#'        each statistic}
-#'    }}
+#' @return \describe{
+#'  \item{overall}{a list containing: \describe{
+#'    \item{\code{strata.freq}}{a vector of the sample sizes for each stratum}
+#'    \item{\code{result}}{a matrix with the statistic estimate and p-value 
+#'      for each statistic}
+#'    \item{\code{null.dist}}{a matrix with the null distributions for 
+#'      each statistic}
+#'  }}
+#'  \item{pairwise}{a list containing: \describe{
+#'    \item{\code{result}}{a data.frame with the result of each pairwise 
+#'      comparison on each row}
+#'    \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic. 
+#'      Values in lower left are the statistic estimate, and upper right are p-values}
+#'    \item{\code{null.dist}}{a matrix with the null distributions for 
+#'      each statistic}
+#'  }} 
 #' }
 #' 
 #' @note On multi-core systems, runs of separate statistics are automatically 
@@ -143,19 +140,20 @@ overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
   if(!is.numeric(nrep) & length(nrep) != 1) {
     stop("'nrep' must be a single-element numeric vector")
   }
-  if(nrep < 1) keep.null <- FALSE
+  if(nrep == 0) keep.null <- FALSE
   
   # remove unstratified samples
   if(any(is.na(strata(g)))) g <- g[, , strataNames(g)]
   
   # delete loci with no genotypes in at least one stratum
   to.delete <- unique(unlist(lapply(strataSplit(g), function(st.g) {
-    n.genotyped <- nInd(st.g) - numMissing(st.g)
+    n.genotyped <- numGenotyped(st.g)
     names(n.genotyped)[n.genotyped == 0]
   })))
   if(length(to.delete) > 0) {
     warning(paste(
-      "The following loci will be removed because they have no genotypes in one or more strata: ",
+      "The following ", length(to.delete), 
+      " loci will be removed because they have no genotypes in one or more strata: ",
       paste(to.delete, collapse = ", ")
     ))
     g <- g[, setdiff(locNames(g), to.delete), ]
@@ -192,44 +190,6 @@ overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
     colnames(nd) <- rownames(result.mat)
     nd
   } else NULL
-  
-# # calculate list of observed values for each population structure function
-#   # conduct permutation test
-#   null.dist <- NULL
-#   if(nrep > 0 & length(stat.list) > 0) {
-#     st <- lapply(1:nrep, function(i) sample(strata(g)))  
-#     
-#     # setup permutation function to return vector of values from each population 
-#     #   structure statistic in stat.funcs
-#     perm.func <- function(ran.strata, g, stat.funcs, ...) {
-#       sapply(1:length(stat.funcs), function(j) {
-#         stat.funcs[[j]](g, strata = ran.strata, ...)
-#       })
-#     }
-#     
-#     # collect null distribution
-#     if(num.cores > 1) {
-#       # setup clusters
-#       cl <- .setupClusters(num.cores)
-#       tryCatch({
-#         # calculate matrix of null distributions
-#         null.dist <- parLapply(cl, st, perm.func, g = g, stat.funcs = stat.list, ...)
-#       })
-#       stopCluster(cl)
-#       closeAllConnections()
-#     } else {
-#       null.dist <- lapply(st, perm.func, g = g, stat.funcs = stat.list, ...)
-#     }
-#     null.dist <- do.call(rbind, null.dist)
-#     colnames(null.dist) <- rownames(result)
-#     
-#     # calculate vector of p-values
-#     for(x in rownames(result)) {
-#       est <- result[x, "estimate"]
-#       if(!is.na(est)) result[x, "p.val"] <- pVal(est, na.omit(null.dist[, x]))
-#     }
-#   } 
-  # if(!keep.null) null.dist <- NULL
   
   # collect strata frequencies to named vector 
   strata.freq <- table(strata(g), useNA = "no")
@@ -302,7 +262,7 @@ pairwiseTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
   
   # create pairwise matrices - lower left is estimate, upper right is p-value 
   stat.cols <- seq(6, ncol(result), 2)
-  strata <- levels(strata(g))
+  strata <- strataNames(g)
   mat <- matrix(nrow = length(strata), ncol = length(strata), 
     dimnames = list(strata, strata)
   )

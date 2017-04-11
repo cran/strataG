@@ -1,45 +1,46 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// [[Rcpp::export]]
-NumericMatrix alleleFreqCalc(IntegerVector locVec, IntegerVector strata,
-                             int ploidy) {
+NumericMatrix alleleFreqCalc(IntegerVector locVec, IntegerVector strataRep) {
   IntegerMatrix table2D(IntegerVector, IntegerVector);
   NumericVector colSumC(NumericMatrix);
   
   // get allele frequencies in each population
-  NumericMatrix alleleFreq = wrap(table2D(locVec, rep(strata, ploidy)));
+  NumericMatrix alleleFreq = wrap(table2D(locVec, strataRep));
   NumericVector alleleFreqColSums = colSumC(alleleFreq);
   for(int r = 0; r < alleleFreq.nrow(); r++) {
     for(int c = 0; c < alleleFreq.ncol(); c++) {
       alleleFreq(r, c) = alleleFreq(r, c) / alleleFreqColSums[c];
     }
   }
+  
   return alleleFreq;
 }
 
-// [[Rcpp::export]]
-NumericMatrix prHetCalc(IntegerVector alleles, IntegerVector nvec,
-                        IntegerMatrix locusMat, IntegerVector strata,
-                        int ploidy) {
+NumericMatrix prHetCalc(IntegerVector locus, int nalleles,
+                        IntegerVector strata, IntegerVector nvec, int ploidy) {
+  IntegerVector idGenotype(IntegerVector, int, int);
+  
   // get proportion heterozygosity for each allele (rows) and population (cols)
-  NumericMatrix prHet(alleles.size(), nvec.size());
-  IntegerVector n(nvec.size());
-  for(int r = 0; r < locusMat.nrow(); r++) {
-    bool allelesNA(any(is_na(locusMat(r, _))));
-    bool strataNA(IntegerVector::is_na(strata[r]));
-    if(allelesNA || strataNA) continue;
-    n[strata[r]] += 1;
-    if(unique(locusMat(r, _)).size() == 1) continue;
-    for(int c = 0; c < locusMat.ncol(); c++) {
-      prHet(locusMat(r, c), strata[r]) += 1;
+  NumericMatrix prHet(nalleles, nvec.size());
+  for(int i = 0; i < strata.size(); i++) {
+    IntegerVector gt = idGenotype(locus, i, ploidy);
+    bool NAs = false;
+    for(int j = 0; j < gt.size(); j++) {
+      if(IntegerVector::is_na(gt[j])) {
+        NAs = true;
+        continue;
+      }
     }
+    if(NAs) continue;
+    if(unique(gt).size() == 1) continue;
+    for(int a = 0; a < gt.size(); a++) prHet(gt[a], strata[i]) += 1;
   }
-  for(int c = 0; c < prHet.ncol(); c++) prHet(_, c) = prHet(_, c) / n[c];
+  for(int c = 0; c < prHet.ncol(); c++) prHet(_, c) = prHet(_, c) / nvec[c];
+  
   return prHet;
 }
 
-// [[Rcpp::export]]
 NumericMatrix varCompCalc(IntegerVector nvec, NumericMatrix alleleFreq,
                           NumericMatrix prHet, int r, double nbar, 
                           double rnbar, double nc) {
@@ -78,51 +79,47 @@ NumericMatrix varCompCalc(IntegerVector nvec, NumericMatrix alleleFreq,
     // Vc (between gametes within individuals) - Eqn. 4
     varcompMat(2, i) = 0.5 * hbar;
   }
+  
   return varcompMat;
 }
 
-
-// [[Rcpp::export]]
 double fstCalc(IntegerMatrix loci, IntegerVector strata, int ploidy) {
   // function declarations
-  IntegerMatrix intVecToMat(IntegerVector, int);
-  IntegerVector calcStrataN(IntegerVector, IntegerVector);
+  IntegerVector calcStrataN(IntegerVector, IntegerVector, int);
   
   // returns numerator and denominator sums for
   //   theta-w calculation for alleles at each locus (page 1363)
+  IntegerVector strataRep(rep_each(strata, loci.nrow() / strata.size()));
   NumericMatrix locusSums(2, loci.ncol());
   for(int loc = 0; loc < loci.ncol(); loc++) {
     IntegerVector locVec = loci(_, loc);
     
     // identify unique alleles and return zeroes if locus is fixed
-    IntegerVector alleles = unique(na_omit(locVec));
-    if(alleles.size() < 2) continue;
+    int nalleles = unique(na_omit(locVec)).size();
+    if(nalleles < 2) continue;
     
-    // form matrix of alleles for each individual
-    IntegerMatrix locusMat = intVecToMat(locVec, ploidy);
-    
-    IntegerVector nvec = calcStrataN(loci(_, loc), strata);
+    IntegerVector nvec = calcStrataN(locVec, strata, ploidy);
     int r = nvec.size();
     if(r < 2) continue;
     double nbar = mean(nvec);
+    if(nbar == 1) continue;
     double rnbar = r * nbar;
     double nc = (rnbar - (sum(Rcpp::pow(nvec, 2.0)) / rnbar)) / (r - 1);
-    NumericMatrix alleleFreq = alleleFreqCalc(locVec, strata, ploidy);
-    NumericMatrix prHet = prHetCalc(alleles, nvec, locusMat, strata, ploidy);
+    NumericMatrix alleleFreq = alleleFreqCalc(locVec, strataRep);
+    NumericMatrix prHet = prHetCalc(locVec, nalleles, strata, nvec, ploidy);
     NumericMatrix varcompMat = varCompCalc(nvec, alleleFreq, prHet, r, nbar, rnbar, nc);
     locusSums(0, loc) = sum(varcompMat(0, _));
     for(int i = 0; i < varcompMat.nrow(); i++) {
       locusSums(1, loc) += sum(varcompMat(i, _));
     }
   }
-  
   double est(sum(locusSums(0, _)) / sum(locusSums(1, _)));
   if(std::isnan(est)) est = NA_REAL;
   return est;
 }
 
 IntegerMatrix maxFstLoci(IntegerMatrix loci, IntegerVector strata, int ploidy, IntegerVector maxAllele) {
-  IntegerVector st(rep(strata, ploidy));
+  IntegerVector st(rep_each(strata, ploidy));
   IntegerMatrix maxLoci(loci.nrow(), loci.ncol());
   
   for(int c = 0; c < maxLoci.ncol(); c++) {
@@ -149,8 +146,9 @@ IntegerMatrix maxFstLoci(IntegerMatrix loci, IntegerVector strata, int ploidy, I
 }
 
 // [[Rcpp::export]]
-NumericVector statFst_C(IntegerMatrix loci, IntegerMatrix strataMat, int ploidy) {
+NumericVector statFst_C(IntegerMatrix loci, IntegerMatrix strataMat) {
   NumericVector estVec(strataMat.ncol());
+  int ploidy(loci.nrow() / strataMat.nrow());
   for(int idx = 0; idx < estVec.size(); idx++) {
     IntegerVector strata(strataMat(_, idx));
     estVec[idx] = fstCalc(loci, strata, ploidy);
@@ -159,12 +157,13 @@ NumericVector statFst_C(IntegerMatrix loci, IntegerMatrix strataMat, int ploidy)
 }
 
 // [[Rcpp::export]]
-NumericVector statFstPrime_C(IntegerMatrix loci, IntegerMatrix strataMat, int ploidy) {
+NumericVector statFstPrime_C(IntegerMatrix loci, IntegerMatrix strataMat) {
   IntegerVector maxAllele(loci.ncol());
   for(int c = 0; c < maxAllele.size(); c++) {
     maxAllele[c] = max(na_omit(loci(_, c))) + 1;
   }
   
+  int ploidy(loci.nrow() / strataMat.nrow());
   IntegerMatrix maxLoci;
   NumericVector estVec(strataMat.ncol());
   for(int idx = 0; idx < estVec.size(); idx++) {

@@ -28,11 +28,11 @@
 #' @export
 #' 
 summarizeLoci <- function(g, by.strata = FALSE, ...) {
-  summary.stats <- function(x) {
-    n.genotyped <- nInd(x) - numMissing(x)
+  smry.func <- function(x) {
+    n.gtyped <- numGenotyped(x)
     cbind(
-      num.genotyped = n.genotyped,
-      prop.genotyped = n.genotyped / nInd(x),
+      num.genotyped = n.gtyped,
+      prop.genotyped = n.gtyped / nInd(x),
       num.alleles = numAlleles(x),
       allelic.richness = allelicRichness(x),
       prop.unique.alleles = propUniqueAlleles(x),
@@ -42,6 +42,6 @@ summarizeLoci <- function(g, by.strata = FALSE, ...) {
   }
   
   if(by.strata) {
-    lapply(strataSplit(g), summary.stats)
-  } else summary.stats(g)
+    lapply(strataSplit(g), smry.func)
+  } else smry.func(g)
 }

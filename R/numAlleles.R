@@ -5,6 +5,10 @@
 #'
 #' @return vector of number of alleles per locus.
 #'
+#' @note If \code{g} is a haploid object with sequences, make sure to run 
+#'   \code{\link{labelHaplotypes}} if sequences aren't already grouped by 
+#'   haplotype.
+#'
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #'
 #' @examples
@@ -16,5 +20,6 @@
 #' @export
 #' 
 numAlleles <- function(g) {
-  apply(g@loci, 2, function(locus) length(unique(na.omit(locus))))
+  .countAlleles <- function(locus) length(unique(na.omit(locus)))
+  .applyPerLocus(.countAlleles, g)
 }
