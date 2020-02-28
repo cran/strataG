@@ -7,7 +7,7 @@
 #'   
 #' @author Eric Archer \email{eric.archer@@noaa.gov}
 #' 
-#' @seealso \link{sequences}, \link{getSequences}
+#' @seealso \link{getSequences}
 #' 
 #' @examples 
 #' # convert list of character vectors
@@ -20,7 +20,6 @@
 #' gtype.mdna <- as.multidna(dloop.g)
 #' gtype.mdna
 #' 
-#' @importFrom methods new
 #' @export
 #' 
 as.multidna <- function(x) {
@@ -32,22 +31,22 @@ as.multidna <- function(x) {
     if(is.null(x@sequences)) {
       stop("the gtypes object does not contain sequences")
     }
-    return(x@sequences)
+    return(getSequences(x, as.multidna = TRUE))
   }
   
   # a DNAbin
-  if(inherits(x, "DNAbin")) return(new("multidna", list(as.matrix(x))))
+  if(inherits(x, "DNAbin")) return(methods::new("multidna", list(as.matrix(x))))
   
   # character matrix or list of character vectors
   if(is.character(x) | (is.list(x) & all(sapply(x, is.character)))) {
-    x <- list(as.DNAbin(x))
+    x <- list(ape::as.DNAbin(x))
   }
   
   # list of DNAbin
   if(is.list(x) & all(sapply(x, function(elem) inherits(elem, "DNAbin")))) {
-    x <- lapply(x, as.matrix)
+    x <- sapply(x, as.matrix, simplify = FALSE)
     if(is.null(names(x))) names(x) <- paste("gene", 1:length(x), sep = "")
-    return(new("multidna", x))
+    return(methods::new("multidna", x))
   }
   
   stop("'x' must be a valid set of sequences")

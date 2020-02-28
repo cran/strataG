@@ -6,19 +6,20 @@
 #' @param g a \code{\link{gtypes}} object.
 #' @param nrep number specifying number of permutation replicates to use for 
 #'   permutation test.
-#' @param stats a character vector or list of functions specifying which 
-#'   anlayses to conduct. If characters, then valid possible choices are: 
-#'   "phist", "fst", "fst.prime", "fis", "gst", "gst.prime", "gst.dbl.prime", "d", 
-#'   or "chi2", or "all". If a list, then functions must be a valid population 
-#'   structure function (see \code{\link{popStructStat}}) taking a 
+#' @param stats a character vector or list of functions specifying which
+#'   anlayses to conduct. If characters, then valid possible choices are:
+#'   "phist", "fst", "fst.prime", "fis", "gst", "gst.prime", "gst.dbl.prime",
+#'   "d", or "chi2", or "all". If a list, then functions must be a valid
+#'   population structure function (see \code{\link{popStructStat}}) taking a
 #'   \linkS4class{gtypes} object and returning a named statistic estimate.
 #' @param type character determining type of test to conduct. Can be "overall", 
 #'   "pairwise", or "both". If "pairwise" or "both" are chosen and there are 
 #'   only two strata, then only an overall test will be conducted.
 #' @param max.cores The maximum number of cores to use to distribute separate 
-#'   statistics over. Default (NULL) sets value to what is reported by 
-#'   \code{\link[parallel]{detectCores} - 1}. Any value greater than this will 
-#'   be set to this value. If \code{detectCores} reports \code{NA}, 
+#'   statistics over. The number of cores to use to distribute separate
+#'   statistics over. If set to \code{NULL}, the value will be what is 
+#'   reported by \code{\link[parallel]{detectCores} - 1}. 
+#'   If \code{detectCores} reports \code{NA}, 
 #'   \code{max.cores} will be set to 1.
 #' @param keep.null logical. Keep the null distribution from the 
 #'   permutation test?
@@ -38,8 +39,9 @@
 #'  \item{pairwise}{a list containing: \describe{
 #'    \item{\code{result}}{a data.frame with the result of each pairwise 
 #'      comparison on each row}
-#'    \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic. 
-#'      Values in lower left are the statistic estimate, and upper right are p-values}
+#'    \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic.
+#'      Values in lower left are the statistic estimate, and upper right are
+#'      p-values}
 #'    \item{\code{null.dist}}{a matrix with the null distributions for 
 #'      each statistic}
 #'  }} 
@@ -61,7 +63,7 @@
 #' ovl
 #' 
 #' #' Just a pairwise test for Gst
-#' pws <- pairwiseTest(msats.g, stats = list(statGst), nrep = 100)
+#' pws <- pairwiseTest(msats.g, stats = "gst", nrep = 100)
 #' pws
 #' 
 #' \dontrun{
@@ -71,13 +73,12 @@
 #' print(full$pairwise)
 #' }
 #' 
-#' @importFrom utils write.csv
 #' @export
 #' 
 popStructTest <- function(g, nrep = 1000, stats = "all", 
                           type = c("both", "overall", "pairwise"),
                           keep.null = FALSE, quietly = FALSE, 
-                          max.cores = NULL, write.output = FALSE, ...) {
+                          max.cores = 1, write.output = FALSE, ...) {
   # check arguments
   type <- match.arg(type)
     
@@ -92,7 +93,7 @@ popStructTest <- function(g, nrep = 1000, stats = "all",
   
   # conduct pairwise test
   pairwise <- NULL
-  if(type %in% c("both", "pairwise") & nStrata(g) > 2) {
+  if(type %in% c("both", "pairwise") & getNumStrata(g) > 2) {
     pairwise <- pairwiseTest(
       g = g, nrep = nrep, stats = stats, keep.null = keep.null, 
       quietly = quietly, max.cores = max.cores, ...
@@ -102,16 +103,16 @@ popStructTest <- function(g, nrep = 1000, stats = "all",
   if(write.output) {
     if(!is.null(overall)) {
       out.file <- gsub("[[:punct:]]", ".", 
-       paste(description(g), "permutation test results.csv")
+       paste(getDescription(g), "permutation test results.csv")
       )
-      write.csv(overall$result, out.file)
+      utils::write.csv(overall$result, out.file)
     }
     if(!is.null(pairwise)) {
       for(stat in names(pairwise$pair.mat)) {
         out.file <- gsub("[[:punct:]]", ".", 
-          paste(description(g), stat, "pairwise matrix.csv")
+          paste(getDescription(g), stat, "pairwise matrix.csv")
         )
-        write.csv(pairwise$pair.mat[[stat]], out.file)
+        utils::write.csv(pairwise$pair.mat[[stat]], out.file)
       }
     }    
   }
@@ -120,20 +121,65 @@ popStructTest <- function(g, nrep = 1000, stats = "all",
 }
 
 
+#' @keywords internal
+#' 
+.checkStats <- function(stats, ploidy) {
+  avail.stats <- if(ploidy == 1) {
+    c("chi2", "fst", "phist")
+  } else {
+    c(
+      "chi2", "d", 
+      "fis", "fst", "fst.prime", 
+      "gst", "gst.prime", "gst.dbl.prime"
+    )
+  }
+  stats <- tolower(stats)
+  stats <- if("all" %in% stats) {
+    avail.stats 
+  } else {
+    missing <- setdiff(stats, avail.stats)
+    if(length(missing) > 0) {
+      missing <- paste(missing, collapse = ", ")
+      stop(paste("the following stats are not available:", missing))
+    }
+    unique(stats)
+  }
+  if(length(stats) == 0) stop("no stats specified.")
+  stats
+}
+
+
+#' @noRd
+#' 
+.runStatFunc <- function(stat.name, input) {
+  stat.func <- switch(
+    tolower(stat.name),
+    chi2 = .statChi2,
+    d = .statJostD,
+    fis = .statFis,
+    fst = .statFst,
+    fst.prime = .statFstPrime,
+    gst = .statGst,
+    gst.prime = .statGstPrime,
+    gst.dbl.prime = .statGstDblPrime,
+    phist = .statPhist,
+    ... = NULL
+  )
+  if(is.null(stat.func)) {
+    .formatResult(stat.name, NULL, input$keep.null)
+  } else {
+    stat.func(input)
+  }
+}
+
+
 #' @rdname popStructTest
-#' @importFrom parallel parLapply stopCluster detectCores
-#' @importFrom swfscMisc pVal
 #' @export
 #' 
 overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE, 
-                        quietly = FALSE, max.cores = NULL, ...) {  
-  
-  stat.list <- statList(stats)
-  if(length(stat.list) == 0) stop("no stats specified. NULL returned.")
-  if(is.null(max.cores)) max.cores <- detectCores() - 1
-  if(is.na(max.cores)) max.cores <- 1
-  if(max.cores < 1) max.cores <- 1
-  num.cores <- min(length(stat.list), max.cores)
+                        quietly = FALSE, max.cores = 1, ...) {
+  # check requested stats
+  stats <- .checkStats(stats, getPloidy(g))
   
   # check replicates
   if(is.null(nrep)) nrep <- 0
@@ -142,43 +188,28 @@ overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
   }
   if(nrep == 0) keep.null <- FALSE
   
-  # remove unstratified samples
-  if(any(is.na(strata(g)))) g <- g[, , strataNames(g)]
+  # format gtypes input
+  input <- .formatCinput(g, nrep, keep.null, hap.dist = "phist" %in% stats, ...)
+  # collect strata frequencies to named vector 
+  strata.freq <- .strataFreq(g)
+  desc <- getDescription(g)
+  rm(g)
   
-  # delete loci with no genotypes in at least one stratum
-  to.delete <- unique(unlist(lapply(strataSplit(g), function(st.g) {
-    n.genotyped <- numGenotyped(st.g)
-    names(n.genotyped)[n.genotyped == 0]
-  })))
-  if(length(to.delete) > 0) {
-    warning(paste(
-      "The following ", length(to.delete), 
-      " loci will be removed because they have no genotypes in one or more strata: ",
-      paste(to.delete, collapse = ", ")
-    ))
-    g <- g[, setdiff(locNames(g), to.delete), ]
-  }
-  
-  if(nStrata(g) == 1) stop("'g' must have more than one stratum defined.")
-  
+  # run population structure tests
   if(!quietly) cat(
-    cat("\n<<<", description(g), ">>>\n"),
+    cat("\n<<<", desc, ">>>\n"),
     format(Sys.time()), ": Overall test :", nrep, "permutations\n"
   )
-  
-  # run each statistic and store results in a list
-  strata.mat <- .permStrata(g, nrep) 
-  stat.func <- function(f, strata.mat, keep.null, ...) {
-    f(g, strata.mat = strata.mat, keep.null = keep.null, ...)
-  }
-  result <- if(num.cores == 1) {
-    lapply(stat.list, stat.func, strata.mat = strata.mat, keep.null = keep.null, ...)
-  } else {
-    cl <- .setupClusters(num.cores)
-    tryCatch({
-      parLapply(cl, stat.list, stat.func, strata.mat = strata.mat, keep.null = keep.null, ...)
-    }, finally = stopCluster(cl))
-  }
+  cl <- swfscMisc::setupClusters(length(stats), max.cores)
+  result <- tryCatch({
+    if(is.null(cl)) {
+      lapply(stats, .runStatFunc, input = input)
+    } else {
+      parallel::clusterEvalQ(cl, require(strataG))
+      parallel::clusterExport(cl, "input", environment())
+      parallel::parLapplyLB(cl, stats, .runStatFunc, input = input)
+    }
+  }, finally = if(!is.null(cl)) parallel::stopCluster(cl) else NULL)
   
   # create matrix of estimates and p-values
   result.mat <- t(sapply(result, function(x) x$result))
@@ -190,9 +221,6 @@ overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
     colnames(nd) <- rownames(result.mat)
     nd
   } else NULL
-  
-  # collect strata frequencies to named vector 
-  strata.freq <- table(strata(g), useNA = "no")
   
   if(!quietly) {
     cat("\n")
@@ -212,12 +240,12 @@ overallTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
 #' @export
 #' 
 pairwiseTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE, 
-                         quietly = FALSE, max.cores = NULL, ...) { 
+                         quietly = FALSE, max.cores = 1, ...) { 
   
-  if(nStrata(g) == 1) stop("'g' must have more than one stratum defined.")
+  if(getNumStrata(g) == 1) stop("'g' must have more than one stratum defined.")
   
   if(!quietly) cat(
-    cat("\n<<<", description(g), ">>>\n"),
+    cat("\n<<<", getDescription(g), ">>>\n"),
     format(Sys.time()), ": Pairwise tests :", nrep, "permutations\n"
   )
   
@@ -252,24 +280,28 @@ pairwiseTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
     n2 <- pair$strata.freq[2]
     strata.1 <- paste(s1, " (", n1, ")", sep = "")
     strata.2 <- paste(s2, " (", n2, ")", sep = "")
-    df <- data.frame(pair.label = paste(strata.1, " v. ", strata.2, sep = ""), 
-      strata.1 = s1, strata.2 = s2, n.1 = n1, n.2 = n2,
+    df <- data.frame(
+      strata.1 = s1, 
+      strata.2 = s2, 
+      n.1 = n1, 
+      n.2 = n2,
       stringsAsFactors = FALSE
     )
-    cbind(df, result.vec)   
+    df <- cbind(df, result.vec) 
+    rownames(df) <- paste(strata.1, " v. ", strata.2, sep = "")
+    df
   }))
-  rownames(result) <- NULL
   
   # create pairwise matrices - lower left is estimate, upper right is p-value 
-  stat.cols <- seq(6, ncol(result), 2)
-  strata <- strataNames(g)
+  stat.cols <- seq(5, ncol(result), 2)
+  strata <- getStrataNames(g)
   mat <- matrix(nrow = length(strata), ncol = length(strata), 
     dimnames = list(strata, strata)
   )
   pair.mat <- lapply(stat.cols, function(i) {
     for(j in 1:nrow(result)) {
-      strata.1 <- result$strata.1[j]
-      strata.2 <- result$strata.2[j]
+      strata.1 <- as.character(result$strata.1[j])
+      strata.2 <- as.character(result$strata.2[j])
       mat[strata.2, strata.1] <- result[j, i]
       mat[strata.1, strata.2] <- result[j, i + 1]
     }
@@ -286,46 +318,9 @@ pairwiseTest <- function(g, nrep = 1000, stats = "all", keep.null = FALSE,
   
   if(!quietly) {
     cat("\nPopulation structure results:\n")
-    print(result[, c(1, 6:ncol(result))])
+    print(result[, 5:ncol(result)])
     cat("\n")
   }
   
   invisible(list(result = result, pair.mat = pair.mat, null.dist = null.dist))
-}
-
-
-#' @rdname popStructTest
-#' @export
-#' 
-statList <- function(stats = "all") {
-  # check stats and return list of functions
-  stat.list <- list(
-    chi2 = statChi2,
-    d = statJostD,
-    fst = statFst,
-    fst.prime = statFstPrime,
-    fis = statFis,
-    gst = statGst,
-    gst.prime = statGstPrime,
-    gst.dbl.prime = statGstDblPrime,
-    phist = statPhist
-  )
-  
-  if(is.character(stats)) {
-    stats <- tolower(stats)
-    if("all" %in% stats) {
-      stat.list 
-    } else {
-      missing <- !stats %in% names(stat.list)
-      if(sum(missing) > 0) {
-        missing <- paste(stats[missing], collapse = ", ")
-        stop(paste("the following stats could not be found:", missing))
-      }
-      stat.list[stats]
-    } 
-  } else if(is.list(stats) & all(sapply(stats, is.function))) {
-    stats
-  } else {
-    stop("'stats' is not a list of functions.")
-  }
 }

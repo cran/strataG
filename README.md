@@ -11,7 +11,7 @@
 
 ## Description
 
-*strataG* is a toolkit for haploid sequence and multilocus genetic data summaries, and analyses of population structure.
+*strataG* is a toolkit for haploid sequence and multilocus genetic data summaries, and analyses of population structure. One can select select specific individuals, loci, or strata using standard R '[' indexing methods. . The package contains functions for summarizing haploid and diploid loci (e.g., allelic richness, heterozygosity, haplotypic diversity, etc.), and haploid sequences by locus and by strata as well as functions for computing by-site base frequencies and identifying variable and fixed sites among strata. There are both overall and pairwise standard tests of population structure like PHIst, Fst, Gst, and Jost's D. If individuals are stratified according to multiple schemes, these stratifications can be changed with the `stratify()` function and summaries or tests can be re-run on the new object. The package also includes wrappers for several external programs like *fastsimcoal2*, *STRUCTURE*, and *mafft*. There are also multiple conversion functions for data objects for other population packages such as *adegenet*, *pegas*, and *phangorn*.
 
 ## Installation
 
@@ -32,19 +32,25 @@ devtools::install_github('ericarcher/strataG', build_vignettes = TRUE)
 
 ## Vignettes
 
-```r
-# To see the list of available vignettes
-browseVignettes("strataG") 
+Vignettes are available on several topics:
 
-# To open a specific vignette
-vignette("gtypes")
+* Creating and manipulating gtypes ("gtypes")
+* Genotype and sequence summaries ("summaries")
+* Working with sequences ("sequences")
+* Tests of population structure ("population.structure")
+* Installing external programs ("external.programs")
+
+To see the list of all available vignettes:
+```r
+browseVignettes("strataG")
 ```
-* Creating and Manipulating gtypes Objects ([ gtypes](https://github.com/ericarcher/stratag/blob/master/vignettes/gtypes.Rmd))
-* By-Locus Summaries ([ summaries](https://github.com/ericarcher/stratag/blob/master/vignettes/summaries.Rmd))
-* Working with sequences ([ sequences](https://github.com/ericarcher/stratag/blob/master/vignettes/sequences.Rmd))
-* Tests of Population Structure ([population.structure](https://github.com/ericarcher/stratag/blob/master/vignettes/population.structure.Rmd))
-* Quality Assurance / Quality Control ([qaqc](https://github.com/ericarcher/stratag/blob/master/vignettes/qaqc.Rmd))
-* Installing External Programs ([external.programs](https://github.com/ericarcher/stratag/blob/master/vignettes/external.programs.Rmd))
+
+To open a specific vignette:
+```r
+vignette("gtypes", "strataG")
+```
+
+There is also a tutorial detailing running _fastsimcoal2_ through _strataG_ available through the function `fscTutorial()`.
 
 ## Citation
 
@@ -62,6 +68,20 @@ Archer, F. 2016. *strataG*: An *R* package for manipulating, summarizing and ana
 * send a pull request: <https://github.com/ericarcher/strataG/>
 * e-mail: <eric.archer@noaa.gov>
 
+## version 2.4.9 (devel)
+* Deleted functions: `alleleFreqFormat`, `as.array.gtypes`
+* Changed structure of `gtypes` object, making it __no longer compatible with previous versions__
+* Fixed and enhanced `arlequinRead()` so that it will read and parse all .arp files. Added `arp2gtypes()` to create `gtypes` object from parsed .arp files.
+* Improved performance of several standard summary functions, most notably `dupGenotypes()`.
+* Full rework of _fastsimcoal2_ wrapper. 
+* Removed `strataGUI()`.
+
+## version 2.1   
+* fixed error in ldNe when missing data are present
+* added STANDARD marker type to fastsimcoal
+* added `na.rm = TRUE` to calculation of mean locus summaries by strata in `summary.gtypes`. This avoids `NaN`s when there is a locus with genotypes missing for all samples.
+* explicitly convert `x` to a `data.frame` in `df2gtypes` in case it is a `data.table` or `tibble`.
+
 ## version 2.0.2 (current on GitHub)
 
 * NOTE: In order to speed up indexing the data in large data sets, this version changes the underlying structure of the `gtypes` object by replacing the `@loci` data.frame slot with a `@data` data.table slot. The data.table has a `id` character column, a `strata` character column, and every column afterwards represents one locus. The `@strata` slot has been removed.
@@ -72,6 +92,7 @@ Archer, F. 2016. *strataG*: An *R* package for manipulating, summarizing and ana
 * Fixed computational errors in population structure metrics due to incorrect sorting of stratification.
 * Added `maf` to return minimum allele frequency for each locus.
 * Added `ldNe` to calculate Ne.
+* Added `expandHaplotypes` to expand the haplotypes in a `gtypes` object to one sequence per individual.
 
 ## version 1.0.6 
 

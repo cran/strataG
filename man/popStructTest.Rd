@@ -4,20 +4,39 @@
 \alias{popStructTest}
 \alias{overallTest}
 \alias{pairwiseTest}
-\alias{statList}
 \title{Population Differentiation Tests}
 \usage{
-popStructTest(g, nrep = 1000, stats = "all", type = c("both", "overall",
-  "pairwise"), keep.null = FALSE, quietly = FALSE, max.cores = NULL,
-  write.output = FALSE, ...)
+popStructTest(
+  g,
+  nrep = 1000,
+  stats = "all",
+  type = c("both", "overall", "pairwise"),
+  keep.null = FALSE,
+  quietly = FALSE,
+  max.cores = 1,
+  write.output = FALSE,
+  ...
+)
 
-overallTest(g, nrep = 1000, stats = "all", keep.null = FALSE,
-  quietly = FALSE, max.cores = NULL, ...)
+overallTest(
+  g,
+  nrep = 1000,
+  stats = "all",
+  keep.null = FALSE,
+  quietly = FALSE,
+  max.cores = 1,
+  ...
+)
 
-pairwiseTest(g, nrep = 1000, stats = "all", keep.null = FALSE,
-  quietly = FALSE, max.cores = NULL, ...)
-
-statList(stats = "all")
+pairwiseTest(
+  g,
+  nrep = 1000,
+  stats = "all",
+  keep.null = FALSE,
+  quietly = FALSE,
+  max.cores = 1,
+  ...
+)
 }
 \arguments{
 \item{g}{a \code{\link{gtypes}} object.}
@@ -25,11 +44,11 @@ statList(stats = "all")
 \item{nrep}{number specifying number of permutation replicates to use for 
 permutation test.}
 
-\item{stats}{a character vector or list of functions specifying which 
-anlayses to conduct. If characters, then valid possible choices are: 
-"phist", "fst", "fst.prime", "fis", "gst", "gst.prime", "gst.dbl.prime", "d", 
-or "chi2", or "all". If a list, then functions must be a valid population 
-structure function (see \code{\link{popStructStat}}) taking a 
+\item{stats}{a character vector or list of functions specifying which
+anlayses to conduct. If characters, then valid possible choices are:
+"phist", "fst", "fst.prime", "fis", "gst", "gst.prime", "gst.dbl.prime",
+"d", or "chi2", or "all". If a list, then functions must be a valid
+population structure function (see \code{\link{popStructStat}}) taking a
 \linkS4class{gtypes} object and returning a named statistic estimate.}
 
 \item{type}{character determining type of test to conduct. Can be "overall", 
@@ -42,9 +61,10 @@ permutation test?}
 \item{quietly}{logical. Print progress and results?}
 
 \item{max.cores}{The maximum number of cores to use to distribute separate 
-statistics over. Default (NULL) sets value to what is reported by 
-\code{\link[parallel]{detectCores} - 1}. Any value greater than this will 
-be set to this value. If \code{detectCores} reports \code{NA}, 
+statistics over. The number of cores to use to distribute separate
+statistics over. If set to \code{NULL}, the value will be what is 
+reported by \code{\link[parallel]{detectCores} - 1}. 
+If \code{detectCores} reports \code{NA}, 
 \code{max.cores} will be set to 1.}
 
 \item{write.output}{logical. Write a .csv file with results?}
@@ -64,8 +84,9 @@ differentiation functions.}
  \item{pairwise}{a list containing: \describe{
    \item{\code{result}}{a data.frame with the result of each pairwise 
      comparison on each row}
-   \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic. 
-     Values in lower left are the statistic estimate, and upper right are p-values}
+   \item{\code{pair.mat}}{a list with a pairwise matrix for each statistic.
+     Values in lower left are the statistic estimate, and upper right are
+     p-values}
    \item{\code{null.dist}}{a matrix with the null distributions for 
      each statistic}
  }} 
@@ -90,7 +111,7 @@ ovl <- overallTest(msats.g, stats = "chi2", nrep = 100)
 ovl
 
 #' Just a pairwise test for Gst
-pws <- pairwiseTest(msats.g, stats = list(statGst), nrep = 100)
+pws <- pairwiseTest(msats.g, stats = "gst", nrep = 100)
 pws
 
 \dontrun{
